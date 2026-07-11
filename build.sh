@@ -1,2 +1,5 @@
 mkdir -p build
-tar cfJ build/maxwell.tar.xz contents/ metadata.json
+
+version=$(jq -r '.KPlugin.Version' metadata.json)
+
+tar cfJ "build/maxwell-$version.tar.xz" contents/ metadata.json
