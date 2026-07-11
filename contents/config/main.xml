@@ -3,8 +3,14 @@
     <kcfgfile name=""/>
 
     <group name="General">
-        <entry name="speed" type="Double">
+        <entry name="displaymode" type="String">
+            <default>GIF</default>
+        </entry>
+        <entry name="gifspeed" type="Double">
             <default>1</default>
+        </entry>
+        <entry name="glbspeed" type="Double">
+            <default>2</default>
         </entry>
         <entry name="mirror" type="Bool">
             <default>false</default>
