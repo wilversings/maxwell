@@ -16,8 +16,10 @@ import QtQuick.Controls
 PlasmoidItem {
     id: widget
 
-    Plasmoid.status: PlasmaCore.Types.HiddenStatus
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
+
+    implicitWidth: 100
+    implicitHeight: 100
 
     SoundEffect {
         id: themeSong
@@ -33,11 +35,12 @@ PlasmoidItem {
     AnimatedImage {
         id: animation
         source: plasmoid.configuration.gifpath
-        width: widget.width
+
         fillMode: Image.PreserveAspectFit
-        mirror: plasmoid.configuration.mirror
-        height: widget.height
+        anchors.fill: parent
+
         speed: plasmoid.configuration.speed
+        mirror: plasmoid.configuration.mirror
         mipmap: plasmoid.configuration.hq
 
         MouseArea {
