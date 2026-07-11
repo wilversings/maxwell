@@ -11,7 +11,9 @@ Kirigami.FormLayout {
 
     property var cfg_displaymode
     property alias cfg_gifspeed: gifspeed.value
+    property var cfg_gifspeedDefault
     property alias cfg_glbspeed: glbspeed.value
+    property var cfg_glbspeedDefault
     property alias cfg_mirror: mirror.checked
     property alias cfg_hq: hq.checked
     property alias cfg_gifpath: gifpath.text
@@ -77,24 +79,38 @@ Kirigami.FormLayout {
         }
     }
 
-    Slider {
-        id: gifspeed
+    RowLayout {
         visible: displaymode.currentIndex === 0
-        Layout.preferredWidth: 15 * Kirigami.Units.gridUnit
-        from: 0.6
-        to: 10
-        stepSize: 0.4
         Kirigami.FormData.label: i18n("Speed")
+        Slider {
+            id: gifspeed
+            Layout.preferredWidth: 15 * Kirigami.Units.gridUnit
+            from: 0.6
+            to: 10
+            stepSize: 0.4
+        }
+        Button {
+            text: i18n("Reset default")
+            icon.name: "edit-reset"
+            onClicked: gifspeed.value = cfg_gifspeedDefault
+        }
     }
 
-    Slider {
-        id: glbspeed
+    RowLayout {
         visible: displaymode.currentIndex === 1
-        Layout.preferredWidth: 15 * Kirigami.Units.gridUnit
-        from: 0.6
-        to: 10
-        stepSize: 0.4
         Kirigami.FormData.label: i18n("Speed")
+        Slider {
+            id: glbspeed
+            Layout.preferredWidth: 15 * Kirigami.Units.gridUnit
+            from: 0.6
+            to: 10
+            stepSize: 0.4
+        }
+        Button {
+            text: i18n("Reset default")
+            icon.name: "edit-reset"
+            onClicked: glbspeed.value = cfg_glbspeedDefault
+        }
     }
 
     CheckBox {

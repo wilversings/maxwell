@@ -34,6 +34,15 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 | **Mirror** | Horizontally flip the GIF animation |
 | **High render quality** | Enable mipmap filtering for smoother GIF rendering |
 
+## ⚠️ QtQuick3D (Optional)
+
+**3D Mesh mode requires the `QtQuick3D` module.** This module is included in Plasma 6.0+ but may be absent on some installations (e.g., minimal or container-based environments).
+
+- If `QtQuick3D` is **available**: Both GIF and 3D Mesh modes work normally.
+- If `QtQuick3D` is **missing**: The widget will load and operate in GIF mode. Selecting 3D Mesh mode will fall back to GIF mode without crashing. The 3D option remains visible in configuration but will not display a 3D scene.
+
+GIF mode, sound playback, and all other features work regardless of `QtQuick3D` availability.
+
 ## 🛠️ Building
 
 To package the widget for distribution:
@@ -58,7 +67,8 @@ This creates `build/maxwell-<version>.tar.xz` ready for installation.
     │   ├── config.qml        # Config page registry
     │   └── main.xml          # Configuration schema
     └── ui/
-        ├── main.qml          # Main widget (GIF + 3D modes)
+        ├── main.qml          # Main widget (GIF mode + SoundEffect + Loader for 3D)
+        ├── view3d.qml        # Isolated 3D scene (QtQuick3D import isolated here)
         ├── maxwell-spinning.gif   # Default GIF animation
         ├── maxwell-spinning.glb   # Default 3D model
         ├── stockmarket.wav        # Default theme song
@@ -70,7 +80,7 @@ This creates `build/maxwell-<version>.tar.xz` ready for installation.
 
 - **QML/QtQuick** — UI framework for Plasma applets
 - **QtMultimedia** — Sound playback
-- **QtQuick3D** — 3D scene rendering with GLB model support
+- **QtQuick3D** (optional) — 3D scene rendering with GLB model support. Required only for 3D Mesh display mode. Widget gracefully falls back to GIF mode if unavailable.
 - **KDE Frameworks** — Kirigami, Plasma Shell APIs, KCMUtils
 
 ## 🐛 Reporting Issues

@@ -85,11 +85,13 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - Configuration is accessed via `plasmoid.configuration.<settingName>`
 - **Display modes** are mutually exclusive – `AnimatedImage` (GIF) and `View3D` (3D Mesh) toggle `visible` based on `plasmoid.configuration.displaymode`
 - **GIF mode** uses `AnimatedImage` with configurable speed (`gifspeed`), mirror, and mipmap options
-- **3D Mesh mode** uses `View3D` with:
-  - `SceneEnvironment` set to transparent background
-  - `PerspectiveCamera` for viewpoint
-  - `DirectionalLight` with ambient fill for illumination
-  - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
+- **3D Mesh mode** is loaded dynamically via a `Loader` component that loads `view3d.qml`. This isolates the `import QtQuick3D` statement so the widget still loads if QtQuick3D is unavailable.
+  - `view3d.qml` contains a `View3D` with:
+    - `SceneEnvironment` set to transparent background
+    - `PerspectiveCamera` for viewpoint
+    - `DirectionalLight` with ambient fill for illumination
+    - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
+  - If QtQuick3D is missing, the `Loader` fails silently and the widget falls back to GIF mode without crashing.
 - Sound is managed through QtMultimedia's `SoundEffect` component (shared across both modes)
 - Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
 - File selection uses lazy-loaded `FileDialog` via `Loader` components
