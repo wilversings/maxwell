@@ -22,7 +22,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 | Setting | Description |
 |---------|-------------|
 | **Display mode** | Switch between `GIF` and `3D Mesh` modes |
-| **GIF / Model path** | Browse and select a custom animation or 3D model file |
+| **Path to GIF** | Browse and select a custom GIF |
 | **Theme song path** | Choose a custom audio file (WAV recommended) |
 | **Play/Stop theme song** | Toggle sound on `Click`, `Double Click`, or `Never` |
 | **Theme song loops** | Set how many times the song repeats |
