@@ -27,18 +27,28 @@
 ├── metadata.json             # Plasma plugin metadata (ID, version, author, etc.)
 ├── README.md                 # User-facing documentation
 ├── screenshot.png            # Preview image
+├── TODO
 ├── .gitignore
-└── contents/
-    ├── config/
-    │   ├── config.qml        # Config page model (registers "General" category)
-    │   └── main.xml          # Configuration schema (defines user-settable options)
-    └── ui/
-        ├── main.qml          # Main widget UI (GIF mode + 3D Mesh mode + SoundEffect)
-        ├── maxwell-spinning.gif   # Default animated GIF
-        ├── maxwell-spinning.glb   # Default 3D model (GLB format)
-        ├── stockmarket.wav        # Default theme song
-        └── config/
-            └── General.qml  # Configuration dialog UI
+├── contents/
+│   ├── config/
+│   │   ├── config.qml        # Config page model (registers "General" category)
+│   │   └── main.xml          # Configuration schema (defines user-settable options)
+│   └── ui/
+│       ├── main.qml          # Entry point, delegates to MaxwellWidget.qml
+│       ├── MaxwellWidget.qml # Core widget UI logic (GIF/3D switching, sound)
+│       ├── view3d.qml        # Isolated 3D scene (QtQuick3D)
+│       ├── assets/
+│       │   ├── maxwell-spinning.gif   # Default animated GIF
+│       │   ├── maxwell-spinning.glb   # Default 3D model (GLB format)
+│       │   └── stockmarket.wav        # Default theme song
+│       └── config/
+│           └── General.qml  # Configuration dialog UI
+└── tests/
+    ├── CMakeLists.txt        # CMake test configuration
+    ├── MockPlasmoid.qml      # Simulated Plasmoid environment for tests
+    ├── README.md             # Testing documentation
+    ├── run_tests.sh          # Script to execute tests
+    └── tst_main.qml          # Unit tests using QML Test framework
 ```
 
 ## Key Files
@@ -46,7 +56,8 @@
 | File | Purpose |
 |------|---------|
 | `metadata.json` | Plugin identity, versioning, author info, and Plasma API requirements |
-| `contents/ui/main.qml` | Main widget: switches between GIF (`AnimatedImage`) and 3D Mesh (`View3D` + `RuntimeLoader`) modes, handles click/double-click to play sound |
+| `contents/ui/main.qml` | Entry point for the Plasmoid, delegates to `MaxwellWidget.qml` |
+| `contents/ui/MaxwellWidget.qml` | Core widget: switches between GIF (`AnimatedImage`) and 3D Mesh (`View3D` + `RuntimeLoader`) modes, handles click/double-click to play sound |
 | `contents/config/main.xml` | Defines all configurable settings (display mode, paths, speeds, loops, mirror, quality) |
 | `contents/config/config.qml` | Registers config pages with Plasma's settings dialog |
 | `contents/ui/config/General.qml` | UI for the configuration dialog (conditionals per display mode, file browsers, sliders) |
@@ -59,8 +70,8 @@ The widget exposes the following user-configurable settings (defined in `content
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | `displaymode` | String | `GIF` | Display mode: `"GIF"` or `"3D Mesh"` |
-| `gifpath` | Path | `maxwell-spinning.gif` | Path to the animated GIF to display |
-| `themepath` | Path | `stockmarket.wav` | Path to the theme song audio file |
+| `gifpath` | Path | `assets/maxwell-spinning.gif` | Path to the animated GIF to display |
+| `themepath` | Path | `assets/stockmarket.wav` | Path to the theme song audio file |
 | `playthemesong` | String | `On Double Click` | When to play theme song (`Never`, `On Click`, `On Double Click`) |
 | `themesongloops` | Int | `1` | Number of times to loop the theme song |
 | `gifspeed` | Double | `1` | GIF animation playback speed multiplier |
@@ -99,21 +110,15 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
   1. `contents/config/main.xml` (schema with default value)
   2. `contents/ui/config/General.qml` (UI control with property alias)
   3. `contents/ui/main.qml` (consume via `plasmoid.configuration.<name>`)
-- Version bumps should be made in `metadata.json` under `KPlugin.Version`
-
-## Testing
-
-To test the widget locally, install it into Plasma:
-
-```bash
-plasma-applywidgetfiles .
-# Or copy to ~/.local/share/plasma/plasmoids/maxwell/
-```
-
-Then right-click the Plasma desktop → Add Widgets → search for "Maxwell".
-
-## Git Conventions
 
 - Remote: `origin` → `git@github.com:wilversings/maxwell.git`
 - Commit messages should describe the feature or fix clearly
 - Tag releases to match `KPlugin.Version` in `metadata.json`
+
+## Testing
+
+To run the unit tests provided in the `tests/` directory:
+```bash
+./tests/run_tests.sh
+```
+This requires `qmltestrunner-qt6` and standard Plasma testing dependencies. See `tests/README.md` for more details.

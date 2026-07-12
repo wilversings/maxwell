@@ -43,6 +43,37 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 
 GIF mode, sound playback, and all other features work regardless of `QtQuick3D` availability.
 
+### Installing QtQuick3D
+
+If you want to use 3D Mesh mode and don't have `QtQuick3D` installed already, install the module for your distribution:
+
+**Fedora / Fedora KDE Spin:**
+```bash
+sudo dnf install qt6-qtquick3d
+```
+
+**openSUSE Tumbleweed / Leap:**
+```bash
+sudo zypper install libqt6qtquick3d
+```
+
+**Arch Linux / Manjaro:**
+```bash
+sudo pacman -S qt6-3d
+```
+
+**Debian / Ubuntu (with KDE backports):**
+```bash
+sudo apt install libqt6qtquick3d6
+```
+
+**Void Linux:**
+```bash
+sudo xbps-install qt6-qt3d
+```
+
+After installation, reload the Plasma shell (`kquitapp6 plasmashell && kstart12 plasmashell`) or log out and back in for the changes to take effect.
+
 ## 🛠️ Building
 
 To package the widget for distribution:
@@ -55,6 +86,17 @@ This creates `build/maxwell-<version>.tar.xz` ready for installation.
 
 **Build dependencies:** `jq`, `tar`
 
+## 🧪 Testing
+
+The project includes a suite of unit tests for the widget UI logic using the QML Test framework. To run the tests:
+
+```bash
+cd tests
+./run_tests.sh
+```
+
+**Testing prerequisites:** `qmltestrunner-qt6` (from `qt6-declarative-devel` or equivalent). See `tests/README.md` for detailed instructions.
+
 ## 📂 Project Structure
 
 ```
@@ -62,18 +104,23 @@ This creates `build/maxwell-<version>.tar.xz` ready for installation.
 ├── build.sh                  # Packaging script
 ├── metadata.json             # Plasma plugin metadata
 ├── screenshot.png            # Preview image
-└── contents/
-    ├── config/
-    │   ├── config.qml        # Config page registry
-    │   └── main.xml          # Configuration schema
-    └── ui/
-        ├── main.qml          # Main widget (GIF mode + SoundEffect + Loader for 3D)
-        ├── view3d.qml        # Isolated 3D scene (QtQuick3D import isolated here)
-        ├── maxwell-spinning.gif   # Default GIF animation
-        ├── maxwell-spinning.glb   # Default 3D model
-        ├── stockmarket.wav        # Default theme song
-        └── config/
-            └── General.qml  # Configuration dialog UI
+├── contents/
+│   ├── config/
+│   │   ├── config.qml        # Config page registry
+│   │   └── main.xml          # Configuration schema
+│   └── ui/
+│       ├── main.qml          # Entry point, delegates to MaxwellWidget
+│       ├── MaxwellWidget.qml # Main widget logic (GIF/3D + sound)
+│       ├── view3d.qml        # Isolated 3D scene (QtQuick3D import isolated here)
+│       ├── assets/
+│       │   ├── maxwell-spinning.gif   # Default GIF animation
+│       │   ├── maxwell-spinning.glb   # Default 3D model
+│       │   └── stockmarket.wav        # Default theme song
+│       └── config/
+│           └── General.qml   # Configuration dialog UI
+└── tests/
+    ├── run_tests.sh          # Test execution script
+    └── tst_main.qml          # QML Unit tests
 ```
 
 ## 🧱 Technology Stack
@@ -82,6 +129,14 @@ This creates `build/maxwell-<version>.tar.xz` ready for installation.
 - **QtMultimedia** — Sound playback
 - **QtQuick3D** (optional) — 3D scene rendering with GLB model support. Required only for 3D Mesh display mode. Widget gracefully falls back to GIF mode if unavailable.
 - **KDE Frameworks** — Kirigami, Plasma Shell APIs, KCMUtils
+
+## ⚠️ Known Issues
+
+- **Adding the widget to the taskbar in 3D Mesh mode** requires a Plasmashell restart. After adding the widget to the taskbar while in 3D Mesh mode, either log out and back in, or run:
+  ```bash
+  plasmashell --replace
+  ```
+- **Adjusting the widget width in 3D Mesh mode** will not grow or shrink the 3D model. The model size remains fixed regardless of widget width adjustments.
 
 ## 🐛 Reporting Issues
 

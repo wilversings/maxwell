@@ -33,7 +33,7 @@ Item {
 
         RuntimeLoader {
             id: modelLoader
-            source: 'maxwell-spinning.glb'
+            source: 'assets/maxwell-spinning.glb'
             scale: Qt.vector3d(1, 1, 1)
             position: Qt.vector3d(10, 2, 5)
 

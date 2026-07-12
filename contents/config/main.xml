@@ -25,10 +25,10 @@
             <default>1</default>
         </entry>
         <entry name="gifpath" type="Path">
-            <default>maxwell-spinning.gif</default>
+            <default>assets/maxwell-spinning.gif</default>
         </entry>
         <entry name="themepath" type="Path">
-            <default>stockmarket.wav</default>
+            <default>assets/stockmarket.wav</default>
         </entry>
     </group>
 </kcfg>
