@@ -9,7 +9,7 @@ Bring a touch of charm to your workspace with Maxwell, a configurable desktop wi
 ## ✨ Features
 
 - **Two display modes** — Choose between a classic animated GIF or a smooth 3D mesh rendering (GLB)
-- **Customizable animations** — Swap in your own GIF or 3D model file
+- **Customizable animations** — Swap in your own GIF file
 - **Theme song playback** — Play the iconic Maxwell theme song (or any audio file) on click, double click, or disable it entirely
 - **Fully configurable** — Adjust animation speed, enable horizontal mirroring, control rendering quality, set theme song loop count, and more
 
