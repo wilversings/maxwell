@@ -36,6 +36,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 
 - **KDE Plasma 6.0** or later
 - **QtQuick3D** (optional) — Required for 3D Mesh display mode. If unavailable, the widget will gracefully fall back to GIF mode.
+- **Assimp asset import plugin** (required for 3D Mesh mode) — Needed to load `.glb` 3D models. On some distributions (notably Arch Linux), this is not installed by default alongside QtQuick3D. Without it, the 3D scene area will remain blank. Install it via your package manager (e.g., `qt6-assimp` on Arch Linux, `qt6-qtquick3d-assets` on Fedora).
 
 ---
 

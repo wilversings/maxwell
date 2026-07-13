@@ -74,6 +74,34 @@ sudo xbps-install qt6-qt3d
 
 After installation, reload the Plasma shell (`kquitapp6 plasmashell && kstart12 plasmashell`) or log out and back in for the changes to take effect.
 
+### Assimp Asset Import Plugin (Required for 3D Mesh Mode)
+
+**3D Mesh mode also requires the Assimp asset import plugin** to load `.glb` models. Without this plugin, the 3D scene area will remain blank even if `QtQuick3D` is installed. You may see an error like `Failed to load asset import plugin with key: "assimp"` in the debug logs.
+
+On some distributions (notably **Arch Linux**), the QtQuick3D package does not include the asset import plugins by default. Install the Assimp plugin for your distribution:
+
+**Arch Linux / Manjaro:**
+```bash
+sudo pacman -S qt6-assimp
+```
+
+**Fedora / Fedora KDE Spin:**
+```bash
+sudo dnf install qt6-qtquick3d-assets
+```
+
+**openSUSE Tumbleweed / Leap:**
+```bash
+sudo zypper install libqt6qtquick3d-assets
+```
+
+**Debian / Ubuntu:**
+```bash
+sudo apt install libqt6qtquick3d6-assets
+```
+
+After installation, reload the Plasma shell or log out and back in for the changes to take effect.
+
 ## 🛠️ Building
 
 To package the widget for distribution:

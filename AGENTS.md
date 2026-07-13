@@ -26,6 +26,7 @@
 ├── build.sh                  # Packaging script (creates .tar.xz)
 ├── metadata.json             # Plasma plugin metadata (ID, version, author, etc.)
 ├── README.md                 # User-facing documentation
+├── KDESTOREPAGE.md           # KDE Store listing page content
 ├── screenshot.png            # Preview image
 ├── TODO
 ├── .gitignore
@@ -48,7 +49,11 @@
     ├── MockPlasmoid.qml      # Simulated Plasmoid environment for tests
     ├── README.md             # Testing documentation
     ├── run_tests.sh          # Script to execute tests
-    └── tst_main.qml          # Unit tests using QML Test framework
+    ├── tst_main.qml          # Unit tests using QML Test framework
+    ├── mock/                 # Mock Plasma modules for isolated testing
+    │   └── org/kde/plasma/   # Mock implementations of core/plasmoid
+    └── org/                  # Plasma module overrides for test environment
+        └── org/kde/plasma/   # Real Plasma module shims
 ```
 
 ## Key Files
@@ -62,6 +67,7 @@
 | `contents/config/config.qml` | Registers config pages with Plasma's settings dialog |
 | `contents/ui/config/General.qml` | UI for the configuration dialog (conditionals per display mode, file browsers, sliders) |
 | `build.sh` | Packages the widget into a `.tar.xz` archive for distribution |
+| `KDESTOREPAGE.md` | KDE Store listing page content (features, configuration, requirements) |
 
 ## Configuration Options
 
@@ -111,9 +117,13 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
   2. `contents/ui/config/General.qml` (UI control with property alias)
   3. `contents/ui/main.qml` (consume via `plasmoid.configuration.<name>`)
 
-- Remote: `origin` → `git@github.com:wilversings/maxwell.git`
-- Commit messages should describe the feature or fix clearly
-- Tag releases to match `KPlugin.Version` in `metadata.json`
+- **Git Conventions:**
+  - Remote: `origin` → `git@github.com:wilversings/maxwell.git`
+  - Commit messages should describe the feature or fix clearly
+  - Tag releases to match `KPlugin.Version` in `metadata.json`
+- **KDE Store:**
+  - `KDESTOREPAGE.md` contains the KDE Store listing page content
+  - Update this file when adding features or changing requirements
 
 ## Testing
 
@@ -122,3 +132,9 @@ To run the unit tests provided in the `tests/` directory:
 ./tests/run_tests.sh
 ```
 This requires `qmltestrunner-qt6` and standard Plasma testing dependencies. See `tests/README.md` for more details.
+
+**Test Infrastructure:**
+- `MockPlasmoid.qml` provides a simulated Plasmoid environment for isolated testing
+- `mock/` directory contains mock implementations of Plasma modules (`org.kde.plasma.core`, `org.kde.plasma.plasmoid`)
+- `org/` directory contains Plasma module shims that override imports during test execution
+- Tests use the QML Test framework (`QtTest`) with `tst_main.qml` as the test entry point
