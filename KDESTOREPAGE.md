@@ -6,12 +6,18 @@ Bring a touch of charm to your workspace with Maxwell, a configurable desktop wi
 
 ---
 
+## 🚀 Installation
+
+Right-click on your Plasma desktop → **Add Widgets** → search for **Maxwell** → **Install**
+
+---
+
 ## ✨ Features
 
-- **Two display modes** — Choose between a classic animated GIF or a smooth 3D mesh rendering (GLB)
-- **Customizable animations** — Swap in your own GIF file
-- **Theme song playback** — Play the iconic Maxwell theme song (or any audio file) on click, double click, or disable it entirely
-- **Fully configurable** — Adjust animation speed, enable horizontal mirroring, control rendering quality, set theme song loop count, and more
+- **Two display modes** — Choose between a classic animated GIF or a smooth 3D mesh rendering (GLB).
+- **Customizable animations** — Swap in your own GIF file.
+- **Theme song playback** — Play the iconic Maxwell theme song (or any audio file) on click, double click, or disable it entirely.
+- **Fully configurable** — Adjust animation speed, enable horizontal mirroring, control rendering quality, set theme song loop count, and more.
 
 ---
 
@@ -35,8 +41,11 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 ## ⚠️ Requirements
 
 - **KDE Plasma 6.0** or later
-- **QtQuick3D** (optional) — Required for 3D Mesh display mode. If unavailable, an informative error message is displayed instead of silently falling back to GIF mode.
-- **Assimp asset import plugin** (required for 3D Mesh mode) — Needed to load `.glb` 3D models. On some distributions (notably Arch Linux), this is not installed by default alongside QtQuick3D. Without it, an error message will guide you to install the missing plugin. Install it via your package manager (e.g., `qt6-assimp` on Arch Linux, `qt6-qtquick3d-assets` on Fedora).
+- **QtQuick3D** & **Assimp asset import plugin**: Both are required if you want to use the **3D Mesh** display mode. Install them via your package manager:
+  - **Arch Linux / Manjaro:** `qt6-3d` and `qt6-assimp`
+  - **Fedora:** `qt6-qtquick3d` and `qt6-qtquick3d-assets`
+  - **openSUSE:** `libqt6qtquick3d` and `libqt6qtquick3d-assets`
+  - **Debian / Ubuntu:** `libqt6qtquick3d6` and `libqt6qtquick3d6-assets`
 
 ---
 
@@ -44,5 +53,3 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 
 - **Source code:** [https://github.com/wilversings/maxwell](https://github.com/wilversings/maxwell)
 - **Report issues:** [https://github.com/wilversings/maxwell/issues](https://github.com/wilversings/maxwell/issues)
-
----
