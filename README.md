@@ -39,7 +39,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 **3D Mesh mode requires the `QtQuick3D` module.** This module is included in Plasma 6.0+ but may be absent on some installations (e.g., minimal or container-based environments).
 
 - If `QtQuick3D` is **available**: Both GIF and 3D Mesh modes work normally.
-- If `QtQuick3D` is **missing**: The widget will load and operate in GIF mode. Selecting 3D Mesh mode will fall back to GIF mode without crashing. The 3D option remains visible in configuration but will not display a 3D scene.
+- If `QtQuick3D` is **missing**: Selecting 3D Mesh mode will display an error message informing you to install the required library, rather than silently falling back to GIF mode.
 
 GIF mode, sound playback, and all other features work regardless of `QtQuick3D` availability.
 
@@ -76,7 +76,7 @@ After installation, reload the Plasma shell (`kquitapp6 plasmashell && kstart12 
 
 ### Assimp Asset Import Plugin (Required for 3D Mesh Mode)
 
-**3D Mesh mode also requires the Assimp asset import plugin** to load `.glb` models. Without this plugin, the 3D scene area will remain blank even if `QtQuick3D` is installed. You may see an error like `Failed to load asset import plugin with key: "assimp"` in the debug logs.
+**3D Mesh mode also requires the Assimp asset import plugin** to load `.glb` models. Without this plugin, an error message will be displayed informing you to install the required plugin, even if `QtQuick3D` is installed. You may see an error like `Failed to load asset import plugin with key: "assimp"` in the debug logs.
 
 On some distributions (notably **Arch Linux**), the QtQuick3D package does not include the asset import plugins by default. Install the Assimp plugin for your distribution:
 
@@ -155,7 +155,7 @@ cd tests
 
 - **QML/QtQuick** — UI framework for Plasma applets
 - **QtMultimedia** — Sound playback
-- **QtQuick3D** (optional) — 3D scene rendering with GLB model support. Required only for 3D Mesh display mode. Widget gracefully falls back to GIF mode if unavailable.
+- **QtQuick3D** (optional) — 3D scene rendering with GLB model support. Required only for 3D Mesh display mode. If unavailable, an informative error message is displayed when 3D mode is selected.
 - **KDE Frameworks** — Kirigami, Plasma Shell APIs, KCMUtils
 
 ## ⚠️ Known Issues

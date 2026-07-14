@@ -19,8 +19,12 @@ Item {
     // Check if 3D Mesh mode is active
     readonly property bool is3DMode: plasmoid.configuration.displaymode === "3D Mesh"
 
+    // Error handling properties
+    readonly property bool hasQtQuick3DError: is3DMode && view3DLoader.status === Loader.Error
+    readonly property bool hasAssimpError: is3DMode && view3DLoader.item && view3DLoader.item.hasError
+    readonly property bool is3DError: hasQtQuick3DError || hasAssimpError
+
     // Loader for 3D view - dynamically loads view3d.qml only when needed
-    // If QtQuick3D is missing, the Loader will fail gracefully and GIF mode is used
     Loader {
         id: view3DLoader
         anchors.fill: parent
@@ -29,16 +33,16 @@ Item {
 
         onStatusChanged: {
             if (status === Loader.Error) {
-                console.warn("QtQuick3D view failed to load - falling back to GIF mode")
+                console.warn("QtQuick3D view failed to load")
             }
         }
     }
 
-    // AnimatedImage for GIF mode (also serves as fallback if 3D fails)
+    // AnimatedImage for GIF mode
     AnimatedImage {
         id: animation
         source: plasmoid.configuration.gifpath
-        visible: !is3DMode || view3DLoader.status === Loader.Error
+        visible: !is3DMode
 
         fillMode: Image.PreserveAspectFit
         anchors.fill: parent
@@ -46,6 +50,40 @@ Item {
         speed: plasmoid.configuration.gifspeed
         mirror: plasmoid.configuration.mirror
         mipmap: plasmoid.configuration.hq
+    }
+
+    // Error message when 3D mode fails to load
+    Rectangle {
+        anchors.centerIn: parent
+        width: childrenRect.width + 20
+        height: childrenRect.height + 20
+
+        visible: is3DError
+        color: "#ffffff"
+        radius: 8
+
+        Column {
+            anchors.centerIn: parent
+            spacing: 8
+
+            Text {
+                text: hasQtQuick3DError ? "3D Engine Failed to Load" : "3D Model Failed to Load"
+                font.bold: true
+                font.pixelSize: 14
+                color: "#000000"
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            Text {
+                text: hasQtQuick3DError ? "The QtQuick3D library is missing.\n\nInstall qt6-qtquick3d for your distribution" : 
+                                          "The Assimp asset import plugin may be missing or the model file is invalid.\n\nInstall the Assimp plugin for your distribution\n\nhttps://github.com/wilversings/maxwell"
+                font.pixelSize: 11
+                color: "#000000"
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                width: parent.width
+            }
+        }
     }
 
     // MouseArea for interactions (shared across both modes)

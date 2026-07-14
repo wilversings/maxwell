@@ -108,7 +108,11 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
     - `PerspectiveCamera` for viewpoint
     - `DirectionalLight` with ambient fill for illumination
     - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
-  - If QtQuick3D is missing, the `Loader` fails silently and the widget falls back to GIF mode without crashing.
+  - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget.
+  - **Error handling:** The widget distinguishes between two failure modes when 3D mode is selected:
+    - **QtQuick3D missing:** The `Loader` fails with `Loader.Error` status. An error message is displayed informing the user to install `qt6-qtquick3d`.
+    - **Assimp plugin missing:** The `Loader` loads successfully but `view3d.qml`'s `RuntimeLoader` fails to load the GLB model (`hasError` is true). An error message is displayed informing the user to install the Assimp plugin.
+  - When either error occurs, a `Rectangle` overlay is shown with descriptive error text (title + details) instead of displaying the GIF or 3D view.
 - Sound is managed through QtMultimedia's `SoundEffect` component (shared across both modes)
 - Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
 - File selection uses lazy-loaded `FileDialog` via `Loader` components

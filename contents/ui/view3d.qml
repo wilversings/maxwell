@@ -6,6 +6,8 @@ import QtQuick3D.Helpers
 Item {
     id: container
 
+    readonly property bool hasError: modelLoader.status === RuntimeLoader.Error
+
     View3D {
         id: view3D
         anchors.fill: parent
@@ -49,4 +51,5 @@ Item {
             }
         }
     }
+
 }
