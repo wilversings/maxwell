@@ -16,6 +16,7 @@ Kirigami.FormLayout {
     property var cfg_glbspeedDefault
     property alias cfg_mirror: mirror.checked
     property alias cfg_hq: hq.checked
+    property alias cfg_allowcameradrag: allowcameradrag.checked
     property alias cfg_gifpath: gifpath.text
     property var cfg_gifpathDefault
 
@@ -125,6 +126,13 @@ Kirigami.FormLayout {
         visible: displaymode.currentIndex === 0
 
         Kirigami.FormData.label: i18n("High render quality")
+    }
+
+    CheckBox {
+        id: allowcameradrag
+        visible: displaymode.currentIndex === 1
+
+        Kirigami.FormData.label: i18n("Allow dragging the camera")
     }
 
     ComboBox {

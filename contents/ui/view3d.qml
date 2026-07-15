@@ -8,6 +8,9 @@ Item {
 
     readonly property bool hasError: modelLoader.status === RuntimeLoader.Error
 
+    signal clicked()
+    signal doubleClicked()
+
     View3D {
         id: view3D
         anchors.fill: parent
@@ -17,12 +20,19 @@ Item {
             backgroundMode: SceneEnvironment.Transparent
         }
 
-        PerspectiveCamera {
-            id: camera
-            x: 10
-            y: 20
-            z: 37
-            eulerRotation.x: -20
+        Node {
+            id: cameraOrigin
+            readonly property vector3d defaultPosition: Qt.vector3d(10, 8, 5)
+            readonly property vector3d defaultEulerRotation: Qt.vector3d(-20, 0, 0)
+
+            position: defaultPosition
+            eulerRotation: defaultEulerRotation
+
+            PerspectiveCamera {
+                id: camera
+                readonly property real defaultZ: 33
+                z: defaultZ
+            }
         }
 
         DirectionalLight {
@@ -52,4 +62,24 @@ Item {
         }
     }
 
+    OrbitCameraController {
+        anchors.fill: parent
+        origin: cameraOrigin
+        camera: camera
+        mouseEnabled: plasmoid.configuration.allowcameradrag
+
+        onMouseEnabledChanged: {
+            if (!mouseEnabled) {
+                cameraOrigin.position = cameraOrigin.defaultPosition
+                cameraOrigin.eulerRotation = cameraOrigin.defaultEulerRotation
+                camera.z = camera.defaultZ
+            }
+        }
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        onSingleTapped: container.clicked()
+        onDoubleTapped: container.doubleClicked()
+    }
 }

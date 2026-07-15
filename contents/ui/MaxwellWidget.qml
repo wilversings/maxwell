@@ -36,6 +36,11 @@ Item {
                 console.warn("QtQuick3D view failed to load")
             }
         }
+
+        onLoaded: {
+            item.clicked.connect(function() { toggleThemeSong("On Click") })
+            item.doubleClicked.connect(function() { toggleThemeSong("On Double Click") })
+        }
     }
 
     // AnimatedImage for GIF mode
@@ -86,24 +91,27 @@ Item {
         }
     }
 
-    // MouseArea for interactions (shared across both modes)
+    function toggleThemeSong(config) {
+        if (plasmoid.configuration.playthemesong != config) {
+            return
+        }
+
+        if (themeSong.playing) {
+            themeSong.stop()
+        }
+        else {
+            themeSong.play()
+        }
+    }
+
+    // MouseArea for click/double-click interactions in GIF mode.
+    // In 3D mode, clicks are handled by view3d.qml instead so this
+    // doesn't steal drag events from the orbit camera controller.
     MouseArea {
         anchors.fill: parent
-        visible: true
+        visible: !is3DMode
+        enabled: !is3DMode
         z: 1
-
-        function toggleThemeSong(config) {
-            if (plasmoid.configuration.playthemesong != config) {
-                return
-            }
-
-            if (themeSong.playing) {
-                themeSong.stop()
-            }
-            else {
-                themeSong.play()
-            }
-        }
 
         onClicked: toggleThemeSong("On Click")
         onDoubleClicked: toggleThemeSong("On Double Click")

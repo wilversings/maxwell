@@ -9,6 +9,7 @@
 ## ✨ Features
 
 - **Two display modes** — Choose between a classic animated GIF or a smooth 3D mesh rendering.
+- **Mouse-controlled camera** — In 3D Mesh mode, drag to orbit the camera around Maxwell and scroll to zoom.
 - **Customizable animation** — Swap in your own GIF and adjust playback speed.
 - **Theme song** — Play the iconic Maxwell theme song (or any audio file) on click or double click.
 - **Fully configurable** — Adjust speed, enable mirroring, control rendering quality, and more.

@@ -105,15 +105,16 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - **3D Mesh mode** is loaded dynamically via a `Loader` component that loads `view3d.qml`. This isolates the `import QtQuick3D` statement so the widget still loads if QtQuick3D is unavailable.
   - `view3d.qml` contains a `View3D` with:
     - `SceneEnvironment` set to transparent background
-    - `PerspectiveCamera` for viewpoint
+    - A `Node` (`cameraOrigin`) holding the `PerspectiveCamera` as a child positioned along local Z, so the camera orbits around `cameraOrigin` rather than moving independently
     - `DirectionalLight` with ambient fill for illumination
     - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
-  - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget.
+  - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan)
+  - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget, and `clicked()`/`doubleClicked()` signals (from an internal `TapHandler`) so `MaxwellWidget.qml` can still toggle the theme song in 3D mode without a `MouseArea` stealing drag input from the orbit controller
   - **Error handling:** The widget distinguishes between two failure modes when 3D mode is selected:
     - **QtQuick3D missing:** The `Loader` fails with `Loader.Error` status. An error message is displayed informing the user to install `qt6-qtquick3d`.
     - **Assimp plugin missing:** The `Loader` loads successfully but `view3d.qml`'s `RuntimeLoader` fails to load the GLB model (`hasError` is true). An error message is displayed informing the user to install the Assimp plugin.
   - When either error occurs, a `Rectangle` overlay is shown with descriptive error text (title + details) instead of displaying the GIF or 3D view.
-- Sound is managed through QtMultimedia's `SoundEffect` component (shared across both modes)
+- Sound is managed through QtMultimedia's `SoundEffect` component. The click/double-click `MouseArea` in `MaxwellWidget.qml` only handles GIF mode (`enabled`/`visible: !is3DMode`); in 3D mode it would otherwise grab drag events before the `OrbitCameraController` in `view3d.qml`, so clicks are instead delivered via the loaded item's `clicked()`/`doubleClicked()` signals
 - Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
 - File selection uses lazy-loaded `FileDialog` via `Loader` components
 - New config options should be added to all three places:

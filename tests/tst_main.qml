@@ -19,6 +19,7 @@ Item {
             property double glbspeed: 2.0
             property bool mirror: false
             property bool hq: true
+            property bool allowcameradrag: true
         }
     }
 
@@ -41,7 +42,8 @@ Item {
             mockPlasmoid.configuration.glbspeed = 2.0
             mockPlasmoid.configuration.mirror = false
             mockPlasmoid.configuration.hq = true
-            
+            mockPlasmoid.configuration.allowcameradrag = true
+
             widgetLoader.active = true
             verify(widgetLoader.item !== null, "Widget should load successfully")
             wait(50) // Wait for initial bindings to evaluate
@@ -96,18 +98,28 @@ Item {
         }
 
         function test_mouseAreaInteraction() {
-            var mouseArea = widgetLoader.item.children[2]
+            // children[0] view3DLoader, [1] animation, [2] error Rectangle, [3] MouseArea
+            var mouseArea = widgetLoader.item.children[3]
             verify(mouseArea !== undefined, "MouseArea should exist")
-            
-            // themeSong is not directly in children (MediaPlayer is not an Item), 
+
+            // themeSong is not directly in children (MediaPlayer is not an Item),
             // but we can ensure toggleThemeSong can be called without errors.
-            mouseArea.toggleThemeSong("On Click")
-            mouseArea.toggleThemeSong("On Double Click")
-            mouseArea.toggleThemeSong("Never")
-            
-            // Check visibility
-            compare(mouseArea.visible, true, "MouseArea should always be visible")
+            widgetLoader.item.toggleThemeSong("On Click")
+            widgetLoader.item.toggleThemeSong("On Double Click")
+            widgetLoader.item.toggleThemeSong("Never")
+
+            // In GIF mode (the default set by init()), the MouseArea handles clicks directly.
+            compare(mouseArea.visible, true, "MouseArea should be visible in GIF mode")
             compare(mouseArea.z, 1, "MouseArea should be on top (z=1)")
+        }
+
+        function test_mouseAreaDisabledIn3DMode() {
+            mockPlasmoid.configuration.displaymode = "3D Mesh"
+            wait(50)
+
+            var mouseArea = widgetLoader.item.children[3]
+            compare(mouseArea.visible, false, "MouseArea should be hidden in 3D mode so it doesn't block camera drag")
+            compare(mouseArea.enabled, false, "MouseArea should be disabled in 3D mode so it doesn't block camera drag")
         }
     }
 }
