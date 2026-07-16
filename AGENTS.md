@@ -27,9 +27,8 @@
 ├── metadata.json             # Plasma plugin metadata (ID, version, author, etc.)
 ├── README.md                 # User-facing documentation
 ├── KDESTOREPAGE.md           # KDE Store listing page content
-├── screenshot.png            # Preview image
-├── TODO
 ├── .gitignore
+├── build/                    # Packaged .tar.xz output from build.sh (gitignored)
 ├── contents/
 │   ├── config/
 │   │   ├── config.qml        # Config page model (registers "General" category)
@@ -39,21 +38,25 @@
 │       ├── MaxwellWidget.qml # Core widget UI logic (GIF/3D switching, sound)
 │       ├── view3d.qml        # Isolated 3D scene (QtQuick3D)
 │       ├── assets/
+│       │   ├── maxwell.png            # Widget icon (metadata.json) & README/store screenshot
 │       │   ├── maxwell-spinning.gif   # Default animated GIF
 │       │   ├── maxwell-spinning.glb   # Default 3D model (GLB format)
 │       │   └── stockmarket.wav        # Default theme song
 │       └── config/
 │           └── General.qml  # Configuration dialog UI
-└── tests/
-    ├── CMakeLists.txt        # CMake test configuration
-    ├── MockPlasmoid.qml      # Simulated Plasmoid environment for tests
-    ├── README.md             # Testing documentation
-    ├── run_tests.sh          # Script to execute tests
-    ├── tst_main.qml          # Unit tests using QML Test framework
-    ├── mock/                 # Mock Plasma modules for isolated testing
-    │   └── org/kde/plasma/   # Mock implementations of core/plasmoid
-    └── org/                  # Plasma module overrides for test environment
-        └── org/kde/plasma/   # Real Plasma module shims
+├── tests/
+│   ├── CMakeLists.txt        # CMake test configuration
+│   ├── MockPlasmoid.qml      # Simulated Plasmoid environment for tests
+│   ├── README.md             # Testing documentation
+│   ├── run_tests.sh          # Script to execute tests
+│   ├── tst_main.qml          # Unit tests using QML Test framework
+│   ├── mock/                 # Mock Plasma modules for isolated testing
+│   │   └── org/kde/plasma/   # Mock implementations of core/plasmoid
+│   └── org/                  # Plasma module overrides for test environment
+│       └── org/kde/plasma/   # Real Plasma module shims
+└── tools/
+    ├── README.md              # Usage docs for grab_screenshot.qml
+    └── grab_screenshot.qml    # Renders view3d.qml offscreen to a transparent PNG (store/README screenshots)
 ```
 
 ## Key Files

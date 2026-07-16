@@ -8,6 +8,14 @@ Item {
 
     readonly property bool hasError: modelLoader.status === RuntimeLoader.Error
 
+    // Exposed for tools/grab_screenshot.qml: the spin animation only
+    // advances in real time when something is actually driving frame
+    // rendering (a visible window), which an offscreen grabToImage() capture
+    // never does - so the tool needs a way to pose the model deterministically
+    // instead of waiting for the animation to reach some point in time.
+    property alias modelSpinning: spinAnimation.running
+    property alias modelEulerRotation: modelLoader.eulerRotation
+
     signal clicked()
     signal doubleClicked()
 

@@ -8,7 +8,7 @@
         ],
         "Category": "Fun and Games",
         "Description": "Maxwell, the desktop cat",
-        "Icon": "emblem-favorite-symbolic",
+        "Icon": "/ui/assets/maxwell.png",
         "Id": "maxwell",
         "License": "GPL3",
         "Name": "Maxwell",

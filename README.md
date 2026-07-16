@@ -4,7 +4,7 @@
 
 [![Plasma API](https://img.shields.io/badge/Plasma%20API-6.0+-blue)](https://kde.org)
 
-![Maxwell Screenshot](./screenshot.png)
+<img src="./contents/ui/assets/maxwell.png" alt="Maxwell Screenshot" style="width:450px;"/>
 
 ## ✨ Features
 
