@@ -16,7 +16,7 @@ Right-click on your Plasma desktop → **Add Widgets** → search for **Maxwell*
 
 - **Two display modes** — Choose between a classic animated GIF or a smooth 3D mesh rendering (GLB).
 - **Mouse-controlled camera** — In 3D Mesh mode, drag to orbit the camera around Maxwell and scroll to zoom.
-- **Customizable animations** — Swap in your own GIF file.
+- **Customizable animations** — Swap in your own GIF file or 3D mesh (GLB).
 - **Theme song playback** — Play the iconic Maxwell theme song (or any audio file) on click, double click, or disable it entirely.
 - **Fully configurable** — Adjust animation speed, enable horizontal mirroring, control rendering quality, set theme song loop count, and more.
 
@@ -30,6 +30,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 |---------|-------------|
 | **Display mode** | Switch between `GIF` and `3D Mesh` modes |
 | **Path to GIF** | Browse and select a custom GIF |
+| **Path to 3D Mesh** | Browse and select a custom GLB model |
 | **Theme song path** | Choose a custom audio file (WAV recommended) |
 | **Play/Stop theme song** | Toggle sound on `Click`, `Double Click`, or `Never` |
 | **Theme song loops** | Set how many times the song repeats |

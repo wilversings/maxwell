@@ -80,6 +80,7 @@ The widget exposes the following user-configurable settings (defined in `content
 |---------|------|---------|-------------|
 | `displaymode` | String | `GIF` | Display mode: `"GIF"` or `"3D Mesh"` |
 | `gifpath` | Path | `assets/maxwell-spinning.gif` | Path to the animated GIF to display |
+| `glbpath` | Path | `assets/maxwell-spinning.glb` | Path to the 3D model (GLB) to display |
 | `themepath` | Path | `assets/stockmarket.wav` | Path to the theme song audio file |
 | `playthemesong` | String | `On Double Click` | When to play theme song (`Never`, `On Click`, `On Double Click`) |
 | `themesongloops` | Int | `1` | Number of times to loop the theme song |
@@ -114,7 +115,7 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
     - `SceneEnvironment` set to transparent background
     - A `Node` (`cameraOrigin`) holding the `PerspectiveCamera` as a child positioned along local Z, so the camera orbits around `cameraOrigin` rather than moving independently
     - `DirectionalLight` with ambient fill for illumination
-    - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
+    - `RuntimeLoader` to load the GLB model (`plasmoid.configuration.glbpath`, defaults to the bundled `assets/maxwell-spinning.glb` but user-replaceable via `General.qml`, same "Path"-kcfg-entry + Browse/Reset pattern as `gifpath`), with `NumberAnimation` on `eulerRotation.y` for continuous spinning
   - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan). `allowcameradrag` only toggles `OrbitCameraController.mouseEnabled` — it no longer resets the pose
   - The camera pose (`cameraOrigin.position`/`eulerRotation`, `camera.z`) persists across sessions in `plasmoid.configuration` (`campos{x,y,z}`, `camrot{x,y}`, `camzoom`). `view3d.qml`'s `applyCameraFromConfig()` is the single source of truth: it runs once on load, and again via `Connections` on `plasmoid.configuration` whenever those entries change externally. It's applied imperatively rather than as a live QML binding, since `OrbitCameraController` mutates `cameraOrigin.position`/`eulerRotation` imperatively on every drag/pan, which would tear down a declarative binding on first use anyway
   - Writes the other direction (live pose → `plasmoid.configuration`) are debounced through a single `saveCameraTimer` (400ms): `OrbitCameraController`'s `FrameAnimation` reassigns the pose every frame while dragging, so writing straight to `plasmoid.configuration` on every change would spam KConfig for the whole drag; each change just restarts the timer, and only the value after the pose has settled gets persisted

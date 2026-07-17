@@ -59,6 +59,8 @@ Kirigami.FormLayout {
 
     property alias cfg_gifpath: gifpath.text
     property var cfg_gifpathDefault
+    property alias cfg_glbpath: glbpath.text
+    property var cfg_glbpathDefault
 
     property var cfg_playthemesong
     property alias cfg_themesongloops: themesongloops.value
@@ -134,6 +136,46 @@ Kirigami.FormLayout {
             text: i18n("Reset default")
             icon.name: "edit-reset"
             onClicked: gifspeed.value = cfg_gifspeedDefault
+        }
+    }
+
+    RowLayout {
+        visible: displaymode.currentIndex === 1
+        Kirigami.FormData.label: i18n("Path to 3D Mesh:")
+        TextField {
+            id: glbpath
+            placeholderText: i18n("No file selected.")
+        }
+        Button {
+            text: i18n("Browse")
+            icon.name: "folder-symbolic"
+            onClicked: glbFileDialogLoader.active = true
+
+            Loader {
+                id: glbFileDialogLoader
+                active: false
+
+                sourceComponent: FileDialog {
+                    id: glbFileDialog
+                    nameFilters: [
+                        i18n("GLB", "*.glb"),
+                        i18n("All files", "*"),
+                    ]
+                    onAccepted: {
+                        glbpath.text = glbFileDialog.selectedFile
+                        glbFileDialogLoader.active = false
+                    }
+                    onRejected: {
+                        glbFileDialogLoader.active = false
+                    }
+                    Component.onCompleted: open()
+                }
+            }
+        }
+        Button {
+            text: i18n("Reset default")
+            icon.name: "edit-reset"
+            onClicked: glbpath.text = cfg_glbpathDefault
         }
     }
 

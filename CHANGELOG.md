@@ -10,6 +10,7 @@
 - Camera pose now persists across sessions
 - Custom widget icon
 - `tools/grab_screenshot.qml`
+- Bring your own 3D mesh (GLB) via "Path to 3D Mesh" setting
 
 ### Changed
 

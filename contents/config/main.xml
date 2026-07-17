@@ -48,6 +48,9 @@
         <entry name="gifpath" type="Path">
             <default>assets/maxwell-spinning.gif</default>
         </entry>
+        <entry name="glbpath" type="Path">
+            <default>assets/maxwell-spinning.glb</default>
+        </entry>
         <entry name="themepath" type="Path">
             <default>assets/stockmarket.wav</default>
         </entry>

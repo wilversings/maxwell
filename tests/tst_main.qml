@@ -12,6 +12,7 @@ Item {
         property var configuration: QtObject {
             property string displaymode: "GIF"
             property string gifpath: "../contents/ui/assets/maxwell-spinning.gif"
+            property string glbpath: "../contents/ui/assets/maxwell-spinning.glb"
             property string themepath: "../contents/ui/assets/stockmarket.wav"
             property string playthemesong: "On Double Click"
             property int themesongloops: 1
