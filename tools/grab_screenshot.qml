@@ -42,6 +42,15 @@ Item {
         property var configuration: QtObject {
             property double glbspeed: 2.0
             property bool allowcameradrag: true
+            // Resolved relative to view3d.qml's own location (contents/ui/),
+            // not this script's - matches main.xml's kcfg default verbatim.
+            property string glbpath: "assets/maxwell-spinning.glb"
+            property double camposx: 10
+            property double camposy: 8
+            property double camposz: 5
+            property double camrotx: -20
+            property double camroty: 0
+            property double camzoom: 33
         }
     }
 

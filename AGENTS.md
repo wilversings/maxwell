@@ -15,7 +15,7 @@
 
 - **QML/QtQuick** – UI framework for Plasma applets
 - **QtMultimedia** – Sound playback via `SoundEffect`
-- **QtQuick3D** – 3D scene rendering (camera, lighting, `RuntimeLoader` for GLB models)
+- **QtQuick3D** – 3D scene rendering (camera, lighting; native `Model`/balsam-converted mesh for the bundled default, `RuntimeLoader` + Assimp for user-supplied GLB files)
 - **KDE Frameworks (Kirigami, Plasma Shell APIs, KCMUtils)** – Plugin integration & configuration UI
 - **build.sh** – Shell script for packaging (uses `jq`, `tar`)
 
@@ -27,6 +27,8 @@
 ├── metadata.json             # Plasma plugin metadata (ID, version, author, etc.)
 ├── README.md                 # User-facing documentation
 ├── KDESTOREPAGE.md           # KDE Store listing page content
+├── CHANGELOG.md              # Per-version changelog
+├── MEMORY_ANALYSIS.md        # Memory/GPU footprint analysis, GIF vs 3D mode, leak check
 ├── .gitignore
 ├── build/                    # Packaged .tar.xz output from build.sh (gitignored)
 ├── contents/
@@ -37,10 +39,15 @@
 │       ├── main.qml          # Entry point, delegates to MaxwellWidget.qml
 │       ├── MaxwellWidget.qml # Core widget UI logic (GIF/3D switching, sound)
 │       ├── view3d.qml        # Isolated 3D scene (QtQuick3D)
+│       ├── CustomMeshLoader.qml # RuntimeLoader wrapper for user-supplied GLB files (Assimp-dependent)
 │       ├── assets/
 │       │   ├── maxwell.png            # Widget icon (metadata.json) & README/store screenshot
 │       │   ├── maxwell-spinning.gif   # Default animated GIF
-│       │   ├── maxwell-spinning.glb   # Default 3D model (GLB format)
+│       │   ├── maxwell-spinning.glb   # Default 3D model (GLB format, source for mesh/ below)
+│       │   ├── mesh/                  # Default model pre-converted to native Qt Quick 3D format via balsam
+│       │   │   ├── MaxwellMesh.qml    # Generated scene graph (materials, textures, node hierarchy)
+│       │   │   ├── meshes/*.mesh      # Generated binary geometry
+│       │   │   └── maps/*             # Generated textures
 │       │   └── stockmarket.wav        # Default theme song
 │       └── config/
 │           └── General.qml  # Configuration dialog UI
@@ -55,8 +62,11 @@
 │   └── org/                  # Plasma module overrides for test environment
 │       └── org/kde/plasma/   # Real Plasma module shims
 └── tools/
-    ├── README.md              # Usage docs for grab_screenshot.qml
-    └── grab_screenshot.qml    # Renders view3d.qml offscreen to a transparent PNG (store/README screenshots)
+    ├── README.md              # Usage docs for grab_screenshot.qml and measure_memory.*
+    ├── grab_screenshot.qml    # Renders view3d.qml offscreen to a transparent PNG (store/README screenshots)
+    ├── measure_memory.qml     # Drives MaxwellWidget.qml for RSS/GPU measurement (see MEMORY_ANALYSIS.md)
+    ├── measure_memory_bare.qml # Bare Qt Quick baseline for measure_memory.sh
+    └── measure_memory.sh      # Samples RSS + AMD GPU usage of a measure_memory.qml run
 ```
 
 ## Key Files
@@ -65,7 +75,9 @@
 |------|---------|
 | `metadata.json` | Plugin identity, versioning, author info, and Plasma API requirements |
 | `contents/ui/main.qml` | Entry point for the Plasmoid, delegates to `MaxwellWidget.qml` |
-| `contents/ui/MaxwellWidget.qml` | Core widget: switches between GIF (`AnimatedImage`) and 3D Mesh (`View3D` + `RuntimeLoader`) modes, handles click/double-click to play sound |
+| `contents/ui/MaxwellWidget.qml` | Core widget: switches between GIF (`AnimatedImage`) and 3D Mesh (`View3D`) modes, handles click/double-click to play sound |
+| `contents/ui/CustomMeshLoader.qml` | `RuntimeLoader` wrapper for user-supplied GLB files - the only place `QtQuick3D.AssetUtils`/Assimp is used |
+| `contents/ui/assets/mesh/MaxwellMesh.qml` | Bundled default mesh, pre-converted from the GLB via `balsam` - no Assimp needed to load it |
 | `contents/config/main.xml` | Defines all configurable settings (display mode, paths, speeds, loops, mirror, quality) |
 | `contents/config/config.qml` | Registers config pages with Plasma's settings dialog |
 | `contents/ui/config/General.qml` | UI for the configuration dialog (conditionals per display mode, file browsers, sliders) |
@@ -115,16 +127,19 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
     - `SceneEnvironment` set to transparent background
     - A `Node` (`cameraOrigin`) holding the `PerspectiveCamera` as a child positioned along local Z, so the camera orbits around `cameraOrigin` rather than moving independently
     - `DirectionalLight` with ambient fill for illumination
-    - `RuntimeLoader` to load the GLB model (`plasmoid.configuration.glbpath`, defaults to the bundled `assets/maxwell-spinning.glb` but user-replaceable via `General.qml`, same "Path"-kcfg-entry + Browse/Reset pattern as `gifpath`), with `NumberAnimation` on `eulerRotation.y` for continuous spinning
+    - **Two statically-declared, always-present mesh sources**, toggled via `visible` based on `usingCustomMesh` (`plasmoid.configuration.glbpath !== "assets/maxwell-spinning.glb"`), with `NumberAnimation` on whichever one's `eulerRotation.y` for continuous spinning:
+      - `MaxwellMesh` (from `assets/mesh/`, brought in via `import "assets/mesh"` - a directory import, not a `Loader`) for the bundled default: the GLB pre-converted once at dev time via Qt's `balsam` tool (ships with `qt6-qtquick3d-devel`) into native Qt Quick 3D `Model`/`.mesh`/textures. No Assimp needed to load it at runtime - see `MEMORY_ANALYSIS.md`.
+      - `CustomMeshLoader` (`contents/ui/CustomMeshLoader.qml`, a `RuntimeLoader` wrapper) for a user-supplied GLB (`plasmoid.configuration.glbpath`, set via `General.qml`'s "Path to 3D Mesh", same Browse/Reset pattern as `gifpath`). Gated by its own `active` property (`container.usingCustomMesh`): while inactive, `source` stays `""` so the Assimp plugin is never pulled into the process - it only loads lazily the moment `source` is actually set to a real file.
+      - **Both are declared statically, never through a `Loader`.** `QQuick3DModel`/`RuntimeLoader` custom-geometry loading (`Model.source`/`RuntimeLoader.source` pointing at a `.mesh` or `.glb` file) silently produces zero-size geometry (`Model.bounds` stays `(0,0,0)`, nothing renders, no error signaled) when the `Model`/`RuntimeLoader` itself is the object a `Loader` dynamically instantiates - confirmed empirically, not documented anywhere obvious. A `Loader` picking between `MaxwellMesh`/`CustomMeshLoader` files (the original design) looks correct and loads without error, but never actually shows anything. Toggling `visible`/`active` on two statically-declared siblings instead sidesteps it entirely.
   - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan). `allowcameradrag` only toggles `OrbitCameraController.mouseEnabled` — it no longer resets the pose
   - The camera pose (`cameraOrigin.position`/`eulerRotation`, `camera.z`) persists across sessions in `plasmoid.configuration` (`campos{x,y,z}`, `camrot{x,y}`, `camzoom`). `view3d.qml`'s `applyCameraFromConfig()` is the single source of truth: it runs once on load, and again via `Connections` on `plasmoid.configuration` whenever those entries change externally. It's applied imperatively rather than as a live QML binding, since `OrbitCameraController` mutates `cameraOrigin.position`/`eulerRotation` imperatively on every drag/pan, which would tear down a declarative binding on first use anyway
   - Writes the other direction (live pose → `plasmoid.configuration`) are debounced through a single `saveCameraTimer` (400ms): `OrbitCameraController`'s `FrameAnimation` reassigns the pose every frame while dragging, so writing straight to `plasmoid.configuration` on every change would spam KConfig for the whole drag; each change just restarts the timer, and only the value after the pose has settled gets persisted
   - The "Reset default position" button in `General.qml` writes each `cfg_camposx`/etc. (the KCM dialog's staged copy, so Cancel/Apply/OK bookkeeping for other pending edits stays correct) *and* the matching `Plasmoid.configuration.camposx`/etc. directly (`import org.kde.plasma.plasmoid`; `Plasmoid` is an attached property, so it resolves to the same live applet instance `view3d.qml` reads from, not a per-engine copy) — the second write is what makes the reset take effect immediately instead of waiting for Apply/OK, since normally `cfg_*` properties in a config page are only staged and don't touch the live config until Apply/OK
   - `General.qml` also keeps `cfg_camposx`/etc. mirrored live to `Plasmoid.configuration` the whole time the dialog is open (another `Connections` block, same six keys). This isn't optional: `AppletConfiguration.qml`'s `saveConfig()` unconditionally writes *every* `cfg_*` property back into the live config on Apply/OK, not just ones the user touched in this dialog — so without this sync, dragging the camera live while the dialog happened to be open, then applying some unrelated change (e.g. unchecking "Allow dragging the camera"), would silently revert the camera to wherever it was when the dialog was first opened
-  - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget, and `clicked()`/`doubleClicked()` signals (from an internal `TapHandler`) so `MaxwellWidget.qml` can still toggle the theme song in 3D mode without a `MouseArea` stealing drag input from the orbit controller
+  - `view3d.qml` exposes a `hasError` property (`usingCustomMesh && customMesh.hasError`, i.e. only meaningful on the `RuntimeLoader` path - the bundled default mesh is assumed always present) to signal model loading failures back to the parent widget, and `clicked()`/`doubleClicked()` signals (from an internal `TapHandler`) so `MaxwellWidget.qml` can still toggle the theme song in 3D mode without a `MouseArea` stealing drag input from the orbit controller
   - **Error handling:** The widget distinguishes between two failure modes when 3D mode is selected:
     - **QtQuick3D missing:** The `Loader` fails with `Loader.Error` status. An error message is displayed informing the user to install `qt6-qtquick3d`.
-    - **Assimp plugin missing:** The `Loader` loads successfully but `view3d.qml`'s `RuntimeLoader` fails to load the GLB model (`hasError` is true). An error message is displayed informing the user to install the Assimp plugin.
+    - **Assimp plugin missing:** Only relevant once a custom mesh is configured - the `Loader` loads successfully but `CustomMeshLoader`'s `RuntimeLoader` fails to load the GLB model (`hasError` is true). An error message is displayed informing the user to install the Assimp plugin. The bundled default mesh doesn't need Assimp at all, so this can't happen for users who haven't set a custom mesh.
   - When either error occurs, a `Rectangle` overlay is shown with descriptive error text (title + details) instead of displaying the GIF or 3D view.
 - Sound is managed through QtMultimedia's `SoundEffect` component. The click/double-click `MouseArea` in `MaxwellWidget.qml` only handles GIF mode (`enabled`/`visible: !is3DMode`); in 3D mode it would otherwise grab drag events before the `OrbitCameraController` in `view3d.qml`, so clicks are instead delivered via the loaded item's `clicked()`/`doubleClicked()` signals
 - Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
@@ -141,6 +156,9 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - **KDE Store:**
   - `KDESTOREPAGE.md` contains the KDE Store listing page content
   - Update this file when adding features or changing requirements
+- **Documentation style:**
+  - `README.md`, `KDESTOREPAGE.md`, and `CHANGELOG.md` should stay concise — don't over-explain, keep entries short
+  - `README.md` and `KDESTOREPAGE.md` specifically should keep a light, witty tone (not `CHANGELOG.md`, which stays plain/factual)
 
 ## Testing
 

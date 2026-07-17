@@ -1,12 +1,26 @@
 import QtQuick
 import QtQuick3D
-import QtQuick3D.AssetUtils
 import QtQuick3D.Helpers
+import "assets/mesh"
 
 Item {
     id: container
 
-    readonly property bool hasError: modelLoader.status === RuntimeLoader.Error
+    // Bundled default mesh (MaxwellMesh, generated offline from the GLB via
+    // balsam - see AGENTS.md) needs no Assimp at runtime; a user-supplied
+    // mesh (General.qml's "Path to 3D Mesh") goes through CustomMeshLoader.qml
+    // (RuntimeLoader + Assimp, the only way to import an arbitrary file at
+    // runtime). Both are declared as static, always-present siblings below
+    // rather than picked via a Loader - QQuick3DModel/RuntimeLoader's custom
+    // geometry silently fails to load when the Model/RuntimeLoader itself is
+    // dynamically instantiated through a Loader, even with a correct source
+    // URL. CustomMeshLoader.qml stays inert (empty source) unless
+    // usingCustomMesh is true, so Assimp is still only ever pulled into the
+    // process for users who've actually set a custom mesh. See
+    // MEMORY_ANALYSIS.md.
+    readonly property bool usingCustomMesh: plasmoid.configuration.glbpath !== "assets/maxwell-spinning.glb"
+
+    readonly property bool hasError: usingCustomMesh && customMesh.hasError
 
     // Exposed for tools/grab_screenshot.qml: the spin animation only
     // advances in real time when something is actually driving frame
@@ -14,7 +28,16 @@ Item {
     // never does - so the tool needs a way to pose the model deterministically
     // instead of waiting for the animation to reach some point in time.
     property alias modelSpinning: spinAnimation.running
-    property alias modelEulerRotation: modelLoader.eulerRotation
+
+    // Forwards into whichever mesh is currently active. Not a true two-way
+    // alias (there are two possible target nodes now, so there's no single
+    // fixed target to alias) - only the write direction is needed, since
+    // grab_screenshot.qml only ever sets this, never reads it back.
+    property vector3d modelEulerRotation: Qt.vector3d(0, 0, 0)
+    onModelEulerRotationChanged: {
+        var activeMesh = usingCustomMesh ? customMesh : defaultMesh
+        activeMesh.eulerRotation = modelEulerRotation
+    }
 
     signal clicked()
     signal doubleClicked()
@@ -105,22 +128,27 @@ Item {
             ambientColor: Qt.rgba(0.4, 0.4, 0.4, 1.0)
         }
 
-        RuntimeLoader {
-            id: modelLoader
-            source: plasmoid.configuration.glbpath
-            scale: Qt.vector3d(1, 1, 1)
+        MaxwellMesh {
+            id: defaultMesh
+            visible: !container.usingCustomMesh
             position: Qt.vector3d(10, 2, 5)
+        }
 
-            NumberAnimation {
-                id: spinAnimation
-                target: modelLoader
-                property: "eulerRotation.y"
-                from: 360
-                to: 0
-                duration: 15000 / plasmoid.configuration.glbspeed
-                loops: Animation.Infinite
-                running: true
-            }
+        CustomMeshLoader {
+            id: customMesh
+            visible: container.usingCustomMesh
+            active: container.usingCustomMesh
+        }
+
+        NumberAnimation {
+            id: spinAnimation
+            target: container.usingCustomMesh ? customMesh : defaultMesh
+            property: "eulerRotation.y"
+            from: 360
+            to: 0
+            duration: 15000 / plasmoid.configuration.glbspeed
+            loops: Animation.Infinite
+            running: true
         }
     }
 

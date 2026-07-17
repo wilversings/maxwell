@@ -27,11 +27,11 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 ## ⚠️ Requirements
 
 - **KDE Plasma 6.0** or later.
-- **QtQuick3D** & **Assimp Plugin**: Both are required if you want to use the **3D Mesh** display mode. Install them via your distribution's package manager:
-  - **Arch Linux / Manjaro:** `qt6-3d` and `qt6-assimp`
-  - **Fedora:** `qt6-qtquick3d` and `assimp`
-  - **openSUSE:** `libqt6qtquick3d` and `libqt6qtquick3d-assets`
-  - **Debian / Ubuntu:** `libqt6qtquick3d6` and `libqt6qtquick3d6-assets`
+- **QtQuick3D**: needed for **3D Mesh** mode. The bundled cat is self-contained — only bringing your own mesh also needs **Assimp**.
+  - **Arch Linux / Manjaro:** `qt6-3d` (+ `qt6-assimp` for custom meshes)
+  - **Fedora:** `qt6-qtquick3d` (+ `assimp` for custom meshes)
+  - **openSUSE:** `libqt6qtquick3d` (+ `libqt6qtquick3d-assets` for custom meshes)
+  - **Debian / Ubuntu:** `libqt6qtquick3d6` (+ `libqt6qtquick3d6-assets` for custom meshes)
 
 ## 🛠️ Building & Testing
 

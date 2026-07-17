@@ -18,6 +18,7 @@
 - Unchecking "Allow dragging the camera" no longer resets camera position
 - Recentered the 3D camera's default framing
 - Debounced camera pose writes to preferences
+- Default 3D mesh no longer requires Assimp (only custom meshes do now)
 
 ### Fixed
 

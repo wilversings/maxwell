@@ -12,7 +12,11 @@ Item {
         property var configuration: QtObject {
             property string displaymode: "GIF"
             property string gifpath: "../contents/ui/assets/maxwell-spinning.gif"
-            property string glbpath: "../contents/ui/assets/maxwell-spinning.glb"
+            // Must match main.xml's literal kcfg default exactly - view3d.qml
+            // compares against this string to decide whether to load the
+            // bundled default mesh (no Assimp needed) or treat it as a
+            // custom mesh (RuntimeLoader + Assimp). See MEMORY_ANALYSIS.md.
+            property string glbpath: "assets/maxwell-spinning.glb"
             property string themepath: "../contents/ui/assets/stockmarket.wav"
             property string playthemesong: "On Double Click"
             property int themesongloops: 1
