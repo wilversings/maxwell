@@ -36,6 +36,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
 | **Speed** | Adjust animation or rotation speed (0.6–10×) |
 | **Mirror** | Horizontally flip the GIF animation |
 | **High render quality** | Enable mipmap filtering for smoother GIF rendering |
+| **Allow dragging the camera** | Toggle mouse-drag camera orbiting in 3D Mesh mode. Your camera angle is remembered between sessions — use the **Reset default position** button next to it to snap back |
 
 ---
 

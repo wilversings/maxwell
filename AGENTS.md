@@ -87,6 +87,10 @@ The widget exposes the following user-configurable settings (defined in `content
 | `glbspeed` | Double | `2` | 3D model rotation speed multiplier |
 | `mirror` | Bool | `false` | Whether to mirror the GIF horizontally |
 | `hq` | Bool | `true` | Whether to use mipmap for higher quality GIF rendering |
+| `allowcameradrag` | Bool | `true` | Whether dragging in 3D Mesh mode orbits the camera |
+| `camposx`/`camposy`/`camposz` | Double | `10`/`8`/`5` | Persisted 3D camera orbit target (`cameraOrigin.position`) |
+| `camrotx`/`camroty` | Double | `-20`/`0` | Persisted 3D camera orbit angle (`cameraOrigin.eulerRotation.x`/`.y`) |
+| `camzoom` | Double | `33` | Persisted 3D camera distance (`camera.z`) |
 
 ## Building & Packaging
 
@@ -111,7 +115,11 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
     - A `Node` (`cameraOrigin`) holding the `PerspectiveCamera` as a child positioned along local Z, so the camera orbits around `cameraOrigin` rather than moving independently
     - `DirectionalLight` with ambient fill for illumination
     - `RuntimeLoader` to load the GLB model, with `NumberAnimation` on `eulerRotation.y` for continuous spinning
-  - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan)
+  - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan). `allowcameradrag` only toggles `OrbitCameraController.mouseEnabled` — it no longer resets the pose
+  - The camera pose (`cameraOrigin.position`/`eulerRotation`, `camera.z`) persists across sessions in `plasmoid.configuration` (`campos{x,y,z}`, `camrot{x,y}`, `camzoom`). `view3d.qml`'s `applyCameraFromConfig()` is the single source of truth: it runs once on load, and again via `Connections` on `plasmoid.configuration` whenever those entries change externally. It's applied imperatively rather than as a live QML binding, since `OrbitCameraController` mutates `cameraOrigin.position`/`eulerRotation` imperatively on every drag/pan, which would tear down a declarative binding on first use anyway
+  - Writes the other direction (live pose → `plasmoid.configuration`) are debounced through a single `saveCameraTimer` (400ms): `OrbitCameraController`'s `FrameAnimation` reassigns the pose every frame while dragging, so writing straight to `plasmoid.configuration` on every change would spam KConfig for the whole drag; each change just restarts the timer, and only the value after the pose has settled gets persisted
+  - The "Reset default position" button in `General.qml` writes each `cfg_camposx`/etc. (the KCM dialog's staged copy, so Cancel/Apply/OK bookkeeping for other pending edits stays correct) *and* the matching `Plasmoid.configuration.camposx`/etc. directly (`import org.kde.plasma.plasmoid`; `Plasmoid` is an attached property, so it resolves to the same live applet instance `view3d.qml` reads from, not a per-engine copy) — the second write is what makes the reset take effect immediately instead of waiting for Apply/OK, since normally `cfg_*` properties in a config page are only staged and don't touch the live config until Apply/OK
+  - `General.qml` also keeps `cfg_camposx`/etc. mirrored live to `Plasmoid.configuration` the whole time the dialog is open (another `Connections` block, same six keys). This isn't optional: `AppletConfiguration.qml`'s `saveConfig()` unconditionally writes *every* `cfg_*` property back into the live config on Apply/OK, not just ones the user touched in this dialog — so without this sync, dragging the camera live while the dialog happened to be open, then applying some unrelated change (e.g. unchecking "Allow dragging the camera"), would silently revert the camera to wherever it was when the dialog was first opened
   - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget, and `clicked()`/`doubleClicked()` signals (from an internal `TapHandler`) so `MaxwellWidget.qml` can still toggle the theme song in 3D mode without a `MouseArea` stealing drag input from the orbit controller
   - **Error handling:** The widget distinguishes between two failure modes when 3D mode is selected:
     - **QtQuick3D missing:** The `Loader` fails with `Loader.Error` status. An error message is displayed informing the user to install `qt6-qtquick3d`.

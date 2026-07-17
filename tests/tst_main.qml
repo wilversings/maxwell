@@ -20,6 +20,12 @@ Item {
             property bool mirror: false
             property bool hq: true
             property bool allowcameradrag: true
+            property double camposx: 10
+            property double camposy: 8
+            property double camposz: 5
+            property double camrotx: -20
+            property double camroty: 0
+            property double camzoom: 33
         }
     }
 
@@ -43,6 +49,12 @@ Item {
             mockPlasmoid.configuration.mirror = false
             mockPlasmoid.configuration.hq = true
             mockPlasmoid.configuration.allowcameradrag = true
+            mockPlasmoid.configuration.camposx = 10
+            mockPlasmoid.configuration.camposy = 8
+            mockPlasmoid.configuration.camposz = 5
+            mockPlasmoid.configuration.camrotx = -20
+            mockPlasmoid.configuration.camroty = 0
+            mockPlasmoid.configuration.camzoom = 33
 
             widgetLoader.active = true
             verify(widgetLoader.item !== null, "Widget should load successfully")

@@ -46,6 +46,10 @@ To run unit tests, execute `./tests/run_tests.sh` (requires `qmltestrunner-qt6`)
   ```
 - **Adjusting the widget width in 3D Mesh mode** will not grow or shrink the 3D model. The model size remains fixed regardless of widget width adjustments.
 
+## 🤖 About This Project
+
+Maxwell is **vibe-coded** — built collaboratively with AI (Claude Code), with a human steering the design, testing, and final calls. If something looks a little AI-flavored under the hood, now you know why.
+
 ## 🐛 Reporting Issues
 
 Found a bug or have a feature request? Please open an issue on [GitHub](https://github.com/wilversings/maxwell/issues).
