@@ -141,6 +141,9 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - **KDE Store:**
   - `KDESTOREPAGE.md` contains the KDE Store listing page content
   - Update this file when adding features or changing requirements
+- **Documentation style:**
+  - `README.md`, `KDESTOREPAGE.md`, and `CHANGELOG.md` should stay concise — don't over-explain, keep entries short
+  - `README.md` and `KDESTOREPAGE.md` specifically should keep a light, witty tone (not `CHANGELOG.md`, which stays plain/factual)
 
 ## Testing
 

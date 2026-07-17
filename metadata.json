@@ -10,7 +10,7 @@
         "Description": "Maxwell, the desktop cat",
         "Icon": "/ui/assets/maxwell.png",
         "Id": "maxwell",
-        "License": "GPL3",
+        "License": "GPLv3",
         "Name": "Maxwell",
         "BugReportUrl": "https://github.com/wilversings/maxwell/issues",
         "Website": "https://github.com/wilversings/maxwell",
