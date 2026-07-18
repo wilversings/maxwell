@@ -8,12 +8,23 @@ Item {
     implicitWidth: 100
     implicitHeight: 100
 
+    // AudioOutput's `device` doesn't follow the system default on its own -
+    // it's a plain property, only ever set once at creation. Binding it to
+    // MediaDevices.defaultAudioOutput (which does update live) keeps the
+    // theme song following Plasma's active playback device instead of
+    // getting stuck on whatever device was default when it started playing.
+    MediaDevices {
+        id: mediaDevices
+    }
+
     MediaPlayer {
         id: themeSong
         source: plasmoid.configuration.playthemesong != "Never" ? plasmoid.configuration.themepath : ""
         loops: plasmoid.configuration.themesongloops
 
-        audioOutput: AudioOutput {}
+        audioOutput: AudioOutput {
+            device: mediaDevices.defaultAudioOutput
+        }
     }
 
     // Check if 3D Mesh mode is active
