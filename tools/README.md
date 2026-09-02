@@ -1,5 +1,130 @@
 # tools/
 
+## dbus_control.sh
+
+Controls a live Maxwell widget over DBus - write any `contents/config/main.xml`
+entry (not just `dbustrigger`) into a running instance, and pick which
+instance if you have more than one on your desktop.
+
+```bash
+./tools/dbus_control.sh [OPTION] [key=value ...]
+```
+
+- **No `key=value` given** — defaults to bumping `dbustrigger`, i.e. plays
+  the theme song. `MaxwellWidget.qml` watches that value and plays
+  regardless of the widget's "Play theme song" setting, so this works even
+  if that's set to "Never".
+- **`key=value` (repeatable)** — writes any config entry, e.g.
+  `gifspeed=2.5`, `mirror=true`, `displaymode="3D Mesh"`. Values are typed
+  as int/float/bool/string based on their shape.
+- **`-i`/`--index N`** — target the Nth Maxwell instance found (0-based,
+  desktops before panels). Default `0`, i.e. the first one found — with
+  no selector, only that one instance is touched, so having several
+  Maxwells on your desktop doesn't mean they all react at once.
+- **`--id ID`** — target the instance with that exact Plasma applet id
+  instead of a position (see `--list`). Takes precedence over `--index`.
+- **`-l`/`--list`** — print every Maxwell instance found (index, applet id,
+  desktop/panel) and exit without changing anything.
+- **`-p`/`--list-properties`** — print every config entry that can be
+  used as a `key=value` (name, type, default, description) and exit.
+  Kept in sync with `contents/config/main.xml` by hand — see the note in
+  `AGENTS.md`'s "New config options" list.
+- **`-h`/`--help`** — print full usage, examples, and the properties
+  table, then exit.
+
+Examples:
+
+```bash
+./tools/dbus_control.sh                          # play the theme song
+./tools/dbus_control.sh gifspeed=3 mirror=true    # tweak GIF playback
+./tools/dbus_control.sh --list
+./tools/dbus_control.sh --list-properties
+./tools/dbus_control.sh --id 42 displaymode="3D Mesh"
+./tools/dbus_control.sh --index 1 dbustrigger=1   # play on the 2nd instance
+./tools/dbus_control.sh --help
+```
+
+It works by calling `org.kde.plasmashell`'s `evaluateScript` DBus method
+(via `qdbus`/`qdbus-qt6`/`qdbus6`, whichever is found first) to run a
+small Plasma Shell script that enumerates widgets of type `maxwell` across
+all desktops and panels, picks the target instance, and calls
+`writeConfig()`/`reloadConfig()` on it — the same mechanism `General.qml`
+itself uses to persist settings, just invoked from outside the widget.
+
+Requires a running `plasmashell` (i.e. an actual Plasma session) and at
+least one Maxwell widget already added to the desktop or a panel.
+
+### Calling it directly, without the script
+
+This isn't running a hidden background service — it's a single, real DBus
+method call (`org.kde.PlasmaShell.evaluateScript`, an existing method that
+`plasmashell` always exposes), so any DBus tool can invoke it directly.
+`dbus_control.sh` just builds this call for you from its arguments;
+here's the same request (trigger the first instance found) written out by
+hand with `qdbus`:
+
+```bash
+qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript '
+function findFirst(containments) {
+    for (var i = 0; i < containments.length; i++) {
+        var widgets = containments[i].widgets("maxwell");
+        if (widgets.length > 0) {
+            return widgets[0];
+        }
+    }
+    return null;
+}
+var target = findFirst(desktops()) || findFirst(panels());
+if (target) {
+    target.currentConfigGroup = ["General"];
+    target.writeConfig("dbustrigger", Date.now());
+    target.reloadConfig();
+    print("Maxwell instance triggered");
+} else {
+    print("No Maxwell instance found");
+}
+'
+```
+
+Or with `busctl` (note the `s` type signature before the script string):
+
+```bash
+busctl --user call org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell evaluateScript s '
+function findFirst(containments) {
+    for (var i = 0; i < containments.length; i++) {
+        var widgets = containments[i].widgets("maxwell");
+        if (widgets.length > 0) {
+            return widgets[0];
+        }
+    }
+    return null;
+}
+var target = findFirst(desktops()) || findFirst(panels());
+if (target) {
+    target.currentConfigGroup = ["General"];
+    target.writeConfig("dbustrigger", Date.now());
+    target.reloadConfig();
+    print("Maxwell instance triggered");
+} else {
+    print("No Maxwell instance found");
+}
+'
+```
+
+To set an arbitrary config entry by hand instead, swap the
+`target.writeConfig("dbustrigger", Date.now())` line for e.g.
+`target.writeConfig("gifspeed", 3)` — the script does exactly this,
+generalized to any key/value pairs and to `--index`/`--id`/`--list`.
+
+Note: Plasma doesn't give a QML-only widget like Maxwell its own dedicated
+DBus interface/method (e.g. a bare `PlayThemeSong()` you'd see with no
+arguments in `d-feet`) — that would need a compiled C++ component or a
+separate background daemon to own a DBus service name, which is a much
+bigger commitment than this hobby widget's pure-QML, KDE-Store-tarball
+packaging is set up for. Routing through `evaluateScript` is the
+lightest-weight way to reach a running widget instance over DBus without
+that.
+
 ## grab_screenshot.qml
 
 Renders `view3d.qml` (3D Mesh mode) offscreen at a chosen pose and saves

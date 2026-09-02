@@ -54,5 +54,9 @@
         <entry name="themepath" type="Path">
             <default>assets/stockmarket.wav</default>
         </entry>
+        <entry name="dbustrigger" type="Int">
+            <default>0</default>
+            <label>Internal counter bumped externally (e.g. via DBus) to play the theme song. Not user-facing.</label>
+        </entry>
     </group>
 </kcfg>

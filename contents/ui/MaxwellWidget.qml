@@ -19,11 +19,25 @@ Item {
 
     MediaPlayer {
         id: themeSong
-        source: plasmoid.configuration.playthemesong != "Never" ? plasmoid.configuration.themepath : ""
+        source: plasmoid.configuration.themepath
         loops: plasmoid.configuration.themesongloops
 
         audioOutput: AudioOutput {
             device: mediaDevices.defaultAudioOutput
+        }
+    }
+
+    // "dbustrigger" isn't shown in the config UI - it only exists so an
+    // external DBus call (see tools/dbus_control.sh) can bump it and
+    // play the theme song on demand, independent of the "Play theme song"
+    // click setting.
+    Connections {
+        target: plasmoid.configuration
+        function onDbustriggerChanged() {
+            if (themeSong.playing) {
+                themeSong.stop()
+            }
+            themeSong.play()
         }
     }
 

@@ -27,6 +27,7 @@ Item {
             property double camrotx: -20
             property double camroty: 0
             property double camzoom: 33
+            property int dbustrigger: 0
         }
     }
 
@@ -56,6 +57,7 @@ Item {
             mockPlasmoid.configuration.camrotx = -20
             mockPlasmoid.configuration.camroty = 0
             mockPlasmoid.configuration.camzoom = 33
+            mockPlasmoid.configuration.dbustrigger = 0
 
             widgetLoader.active = true
             verify(widgetLoader.item !== null, "Widget should load successfully")
@@ -124,6 +126,18 @@ Item {
             // In GIF mode (the default set by init()), the MouseArea handles clicks directly.
             compare(mouseArea.visible, true, "MouseArea should be visible in GIF mode")
             compare(mouseArea.z, 1, "MouseArea should be on top (z=1)")
+        }
+
+        function test_dbusTriggerPlaysThemeSong() {
+            // Simulate an external DBus caller bumping the trigger config
+            // even though "playthemesong" is set to "Never" - the DBus
+            // trigger should play regardless of that setting.
+            mockPlasmoid.configuration.playthemesong = "Never"
+            mockPlasmoid.configuration.dbustrigger = 1
+            wait(50)
+
+            mockPlasmoid.configuration.dbustrigger = 2
+            wait(50)
         }
 
         function test_mouseAreaDisabledIn3DMode() {

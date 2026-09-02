@@ -4,6 +4,7 @@
 
 ### Added
 
+- Theme song can now be triggered via DBus (see `tools/dbus_control.sh`), independent of the "Play theme song" click setting; the same script can also change any other widget setting live and target a specific instance
 - Mouse-drag camera orbiting in 3D Mesh mode (drag to orbit, Ctrl+drag to pan)
 - "Allow dragging the camera" setting
 - "Reset default position" button

@@ -55,7 +55,8 @@
 │   └── org/                  # Plasma module overrides for test environment
 │       └── org/kde/plasma/   # Real Plasma module shims
 └── tools/
-    ├── README.md              # Usage docs for grab_screenshot.qml
+    ├── README.md              # Usage docs for dbus_control.sh and grab_screenshot.qml
+    ├── dbus_control.sh        # Writes any widget config live via DBus (org.kde.plasmashell evaluateScript); no args = play the theme song. --help/--list-properties for usage
     └── grab_screenshot.qml    # Renders view3d.qml offscreen to a transparent PNG (store/README screenshots)
 ```
 
@@ -92,6 +93,7 @@ The widget exposes the following user-configurable settings (defined in `content
 | `camposx`/`camposy`/`camposz` | Double | `10`/`8`/`5` | Persisted 3D camera orbit target (`cameraOrigin.position`) |
 | `camrotx`/`camroty` | Double | `-20`/`0` | Persisted 3D camera orbit angle (`cameraOrigin.eulerRotation.x`/`.y`) |
 | `camzoom` | Double | `33` | Persisted 3D camera distance (`camera.z`) |
+| `dbustrigger` | Int | `0` | Not user-facing. Bumped externally (see `tools/dbus_control.sh`) to play the theme song via DBus, independent of `playthemesong` |
 
 ## Building & Packaging
 
@@ -129,10 +131,11 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - Sound is managed through QtMultimedia's `SoundEffect` component. The click/double-click `MouseArea` in `MaxwellWidget.qml` only handles GIF mode (`enabled`/`visible: !is3DMode`); in 3D mode it would otherwise grab drag events before the `OrbitCameraController` in `view3d.qml`, so clicks are instead delivered via the loaded item's `clicked()`/`doubleClicked()` signals
 - Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
 - File selection uses lazy-loaded `FileDialog` via `Loader` components
-- New config options should be added to all three places:
+- New config options should be added to all four places:
   1. `contents/config/main.xml` (schema with default value)
   2. `contents/ui/config/General.qml` (UI control with property alias)
   3. `contents/ui/main.qml` (consume via `plasmoid.configuration.<name>`)
+  4. `tools/dbus_control.sh`'s `PROPERTIES` array (so `--list-properties`/`--help` stay accurate)
 
 - **Git Conventions:**
   - Remote: `origin` → `git@github.com:wilversings/maxwell.git`
