@@ -112,7 +112,7 @@ KCM.SimpleKCM {
                             i18n("All files (*)"),
                         ]
                         onAccepted: {
-                            gifpath.text = gifFileDialog.selectedFile
+                            gifpath.text = gifFileDialog.selectedFile.toString().replace(/^file:\/\//, "")
                             gifFileDialogLoader.active = false
                         }
                         onRejected: {
@@ -152,7 +152,7 @@ KCM.SimpleKCM {
                             i18n("All files (*)"),
                         ]
                         onAccepted: {
-                            glbpath.text = glbFileDialog.selectedFile
+                            glbpath.text = glbFileDialog.selectedFile.toString().replace(/^file:\/\//, "")
                             glbFileDialogLoader.active = false
                         }
                         onRejected: {

@@ -67,7 +67,7 @@ KCM.SimpleKCM {
                             i18n("All files (*)"),
                         ]
                         onAccepted: {
-                            themepath.text = themeFileDialog.selectedFile
+                            themepath.text = themeFileDialog.selectedFile.toString().replace(/^file:\/\//, "")
                             themeFileDialogLoader.active = false
                         }
                         onRejected: {
