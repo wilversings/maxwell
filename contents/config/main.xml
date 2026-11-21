@@ -2,9 +2,60 @@
 <kcfg xmlns="http://www.kde.org/standards/kcfg/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
     <kcfgfile name=""/>
 
+    <!-- Every entry stays in this one "General" group on purpose, even though
+         the config dialog spreads them over several pages (General, Movement,
+         Sound). Entries are stored per group in plasma-appletsrc
+         ([...][Configuration][General]), so moving one to another group or
+         renaming it would silently reset it for existing users. Pages pick
+         their entries by cfg_<name> only, which is group-agnostic. -->
     <group name="General">
         <entry name="displaymode" type="String">
             <default>GIF</default>
+        </entry>
+        <entry name="movement" type="String">
+            <default>Constant</default>
+        </entry>
+        <!-- Sample rate for every sensor-driven movement type (CPU, GPU, fan),
+             despite the name - kept as-is so existing values carry over. -->
+        <entry name="cpusamplerate" type="Int">
+            <default>1000</default>
+            <min>500</min>
+            <max>10000</max>
+        </entry>
+        <entry name="fansensor" type="String">
+            <default></default>
+        </entry>
+        <entry name="fanautorange" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="fanlearnedsensor" type="String">
+            <default></default>
+            <label>Fan the learned RPM range below belongs to. Not user-facing - written by FanRangeLearner.qml.</label>
+        </entry>
+        <entry name="fanlearnedmin" type="Int">
+            <default>-1</default>
+            <label>Lowest sustained RPM seen for fanlearnedsensor (-1 = nothing learned). Not user-facing.</label>
+        </entry>
+        <entry name="fanlearnedmax" type="Int">
+            <default>-1</default>
+            <label>Highest sustained RPM seen for fanlearnedsensor (-1 = nothing learned). Not user-facing.</label>
+        </entry>
+        <entry name="fanminrpm" type="Int">
+            <default>0</default>
+            <min>0</min>
+            <max>20000</max>
+        </entry>
+        <entry name="fanmaxrpm" type="Int">
+            <default>2000</default>
+            <min>1</min>
+            <max>20000</max>
+        </entry>
+        <!-- How far (px) past the widget's edges "By cursor proximity" reacts
+             to the cursor. -->
+        <entry name="proximityreach" type="Int">
+            <default>300</default>
+            <min>0</min>
+            <max>2000</max>
         </entry>
         <entry name="gifspeed" type="Double">
             <default>1</default>

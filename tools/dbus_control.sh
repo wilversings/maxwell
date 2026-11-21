@@ -2,8 +2,8 @@
 # dbus_control.sh - Control a live Maxwell widget via DBus
 #
 # Finds a Maxwell widget instance (on the desktop or in a panel) and
-# writes one or more values into its config, the same way General.qml
-# does - so anything in contents/config/main.xml can be changed live,
+# writes one or more values into its config, the same way the config
+# dialog does - so anything in contents/config/main.xml can be changed live,
 # not just "dbustrigger". Called with no key=value pairs, it defaults to
 # bumping "dbustrigger", which MaxwellWidget.qml watches to play the
 # theme song - this works even if the widget's "Play theme song" setting
@@ -26,6 +26,16 @@ PROPERTIES=(
     "themepath|Path|assets/stockmarket.wav|Path to the theme song audio file"
     "playthemesong|String|On Double Click|When to play theme song (Never, On Click, On Double Click)"
     "themesongloops|Int|1|Number of times to loop the theme song"
+    "movement|String|Constant|Spin speed source: \"Constant\" (gifspeed/glbspeed), \"By CPU usage\", \"By GPU usage\", \"By fan speed\" (sensor types need libksysguard) or \"By cursor proximity\""
+    "cpusamplerate|Int|1000|Sensor sample rate in ms (500-10000) for the CPU, GPU and fan speed movement types"
+    "fansensor|String||Fan sensor id for \"By fan speed\", e.g. lmsensors/nct6793-isa-0290/fan1"
+    "fanautorange|Bool|true|Learn the fan's RPM range automatically instead of using fanminrpm/fanmaxrpm"
+    "fanlearnedsensor|String||Not user-facing - fan the learned range belongs to; set to \"\" to reset it"
+    "fanlearnedmin|Int|-1|Not user-facing - lowest sustained RPM learned (-1 = nothing yet)"
+    "fanlearnedmax|Int|-1|Not user-facing - highest sustained RPM learned (-1 = nothing yet)"
+    "fanminrpm|Int|0|Manual range: fan RPM at (or below) which Maxwell spins slowest"
+    "fanmaxrpm|Int|2000|Manual range: fan RPM at (or above) which Maxwell spins fastest"
+    "proximityreach|Int|300|How far (px, 0-2000) past the widget's edges \"By cursor proximity\" reacts to the cursor"
     "gifspeed|Double|1|GIF animation playback speed multiplier"
     "glbspeed|Double|2|3D model rotation speed multiplier"
     "mirror|Bool|false|Whether to mirror the GIF horizontally"

@@ -16,6 +16,11 @@ Item {
     property alias modelSpinning: spinAnimation.running
     property alias modelEulerRotation: modelLoader.eulerRotation
 
+    // Spin speed multiplier. MaxwellWidget.qml binds this to its computed
+    // speed (constant or CPU-driven); standalone users like
+    // tools/grab_screenshot.qml just get the configured constant.
+    property real speed: plasmoid.configuration.glbspeed
+
     signal clicked()
     signal doubleClicked()
 
@@ -110,17 +115,23 @@ Item {
             source: plasmoid.configuration.glbpath
             scale: Qt.vector3d(1, 1, 1)
             position: Qt.vector3d(10, 2, 5)
+        }
+    }
 
-            NumberAnimation {
-                id: spinAnimation
-                target: modelLoader
-                property: "eulerRotation.y"
-                from: 360
-                to: 0
-                duration: 15000 / plasmoid.configuration.glbspeed
-                loops: Animation.Infinite
-                running: true
+    // Advances the spin by elapsed frame time rather than animating over a
+    // fixed duration, so `speed` can change every frame (CPU-driven movement
+    // is smoothed continuously) without the model jumping - a NumberAnimation
+    // keeps its progress fraction when its duration changes. 24 deg/s per
+    // unit of speed, i.e. one full turn every 15s at speed 1.
+    FrameAnimation {
+        id: spinAnimation
+        running: true
+        onTriggered: {
+            let y = (modelLoader.eulerRotation.y - 24 * container.speed * frameTime) % 360
+            if (y < 0) {
+                y += 360
             }
+            modelLoader.eulerRotation.y = y
         }
     }
 

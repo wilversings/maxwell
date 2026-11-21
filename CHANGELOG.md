@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Movement "Type" setting: constant speed, or speed driven by CPU usage, GPU usage, fan speed or cursor proximity (smoothed, requires libksysguard)
+- Automatic fan discovery, with an automatically learned (or manual) RPM range
+- "Sample rate" setting for sensor-driven movement
+- "By cursor proximity" movement type: spins faster the closer the cursor gets, with a configurable "Reach"
+
+### Changed
+
+- Settings split into General, Movement and Sound pages; existing settings carry over
+- Settings pages keep a margin below the dialog header, scroll when they don't fit, and no longer shift sideways when switching movement type or display mode
+- Settings pages no longer flicker into place when a section is first shown
+- 3D Mesh rotation speed changes no longer make the model jump
+
 ## 2.2.0
 
 ### Added

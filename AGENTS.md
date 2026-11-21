@@ -29,6 +29,8 @@
 ├── KDESTOREPAGE.md           # KDE Store listing page content
 ├── .gitignore
 ├── build/                    # Packaged .tar.xz output from build.sh (gitignored)
+├── roadmap/
+│   └── movement.md           # Planned movement type ideas (not yet implemented)
 ├── contents/
 │   ├── config/
 │   │   ├── config.qml        # Config page model (registers "General" category)
@@ -37,13 +39,20 @@
 │       ├── main.qml          # Entry point, delegates to MaxwellWidget.qml
 │       ├── MaxwellWidget.qml # Core widget UI logic (GIF/3D switching, sound)
 │       ├── view3d.qml        # Isolated 3D scene (QtQuick3D)
+│       ├── HardwareSensor.qml # Isolated CPU/GPU/fan sensor reader (libksysguard)
+│       ├── FanRangeLearner.qml # Learns and persists a fan's RPM range
 │       ├── assets/
 │       │   ├── maxwell.png            # Widget icon (metadata.json) & README/store screenshot
 │       │   ├── maxwell-spinning.gif   # Default animated GIF
 │       │   ├── maxwell-spinning.glb   # Default 3D model (GLB format)
 │       │   └── stockmarket.wav        # Default theme song
 │       └── config/
-│           └── General.qml  # Configuration dialog UI
+│           ├── General.qml    # Config page: display mode, GIF/GLB paths, mirror, render quality, camera dragging/reset
+│           ├── Movement.qml   # Config page: movement type, fan, RPM range, sample rate, speed
+│           ├── Sound.qml      # Config page: theme song trigger, loops, path
+│           ├── SensorDiscovery.qml # Isolated GPU/fan discovery for Movement.qml (libksysguard)
+│           ├── LabelColumnAnchor.qml # Pins a page's form label column to a constant width
+│           └── SettingsForm.qml # The FormLayout every page uses; hides its first, un-laid-out frame
 ├── tests/
 │   ├── CMakeLists.txt        # CMake test configuration
 │   ├── MockPlasmoid.qml      # Simulated Plasmoid environment for tests
@@ -69,7 +78,7 @@
 | `contents/ui/MaxwellWidget.qml` | Core widget: switches between GIF (`AnimatedImage`) and 3D Mesh (`View3D` + `RuntimeLoader`) modes, handles click/double-click to play sound |
 | `contents/config/main.xml` | Defines all configurable settings (display mode, paths, speeds, loops, mirror, quality) |
 | `contents/config/config.qml` | Registers config pages with Plasma's settings dialog |
-| `contents/ui/config/General.qml` | UI for the configuration dialog (conditionals per display mode, file browsers, sliders) |
+| `contents/ui/config/*.qml` | Configuration dialog pages (General, Movement, Sound), registered in `config.qml` |
 | `build.sh` | Packages the widget into a `.tar.xz` archive for distribution |
 | `KDESTOREPAGE.md` | KDE Store listing page content (features, configuration, requirements) |
 
@@ -85,6 +94,13 @@ The widget exposes the following user-configurable settings (defined in `content
 | `themepath` | Path | `assets/stockmarket.wav` | Path to the theme song audio file |
 | `playthemesong` | String | `On Double Click` | When to play theme song (`Never`, `On Click`, `On Double Click`) |
 | `themesongloops` | Int | `1` | Number of times to loop the theme song |
+| `movement` | String | `Constant` | Spin speed source: `"Constant"` (uses `gifspeed`/`glbspeed`), `"By CPU usage"`, `"By GPU usage"`, `"By fan speed"` or `"By cursor proximity"` |
+| `cpusamplerate` | Int | `1000` | Sensor sample rate in ms (500–10000) for the CPU, GPU and fan speed movement types (named before GPU/fan existed; kept for compatibility) |
+| `fansensor` | String | `""` | Sensor id followed by `"By fan speed"` (e.g. `lmsensors/nct6793-isa-0290/fan1`) |
+| `fanautorange` | Bool | `true` | Learn the fan's RPM range automatically instead of using `fanminrpm`/`fanmaxrpm` |
+| `fanlearnedsensor`/`fanlearnedmin`/`fanlearnedmax` | String/Int/Int | `""`/`-1`/`-1` | Not user-facing. Learned range and the fan it belongs to, written by `FanRangeLearner.qml` |
+| `fanminrpm`/`fanmaxrpm` | Int | `0`/`2000` | Manual RPM range mapped onto the slowest–fastest speed in `"By fan speed"` |
+| `proximityreach` | Int | `300` | How far (px, 0–2000) past the widget's edges `"By cursor proximity"` reacts to the cursor |
 | `gifspeed` | Double | `1` | GIF animation playback speed multiplier |
 | `glbspeed` | Double | `2` | 3D model rotation speed multiplier |
 | `mirror` | Bool | `false` | Whether to mirror the GIF horizontally |
@@ -111,29 +127,44 @@ This creates `build/maxwell-<version>.tar.xz` containing `contents/` and `metada
 - The main component extends `PlasmoidItem` with `Plasmoid.backgroundHints: NoBackground` for transparency
 - Configuration is accessed via `plasmoid.configuration.<settingName>`
 - **Display modes** are mutually exclusive – `AnimatedImage` (GIF) and `View3D` (3D Mesh) toggle `visible` based on `plasmoid.configuration.displaymode`
-- **GIF mode** uses `AnimatedImage` with configurable speed (`gifspeed`), mirror, and mipmap options
+- **GIF mode** uses `AnimatedImage` with configurable speed (`gifspeed`, or sensor-driven - see Movement below), mirror, and mipmap options
 - **3D Mesh mode** is loaded dynamically via a `Loader` component that loads `view3d.qml`. This isolates the `import QtQuick3D` statement so the widget still loads if QtQuick3D is unavailable.
   - `view3d.qml` contains a `View3D` with:
     - `SceneEnvironment` set to transparent background
     - A `Node` (`cameraOrigin`) holding the `PerspectiveCamera` as a child positioned along local Z, so the camera orbits around `cameraOrigin` rather than moving independently
     - `DirectionalLight` with ambient fill for illumination
-    - `RuntimeLoader` to load the GLB model (`plasmoid.configuration.glbpath`, defaults to the bundled `assets/maxwell-spinning.glb` but user-replaceable via `General.qml`, same "Path"-kcfg-entry + Browse/Reset pattern as `gifpath`), with `NumberAnimation` on `eulerRotation.y` for continuous spinning
+    - `RuntimeLoader` to load the GLB model (`plasmoid.configuration.glbpath`, defaults to the bundled `assets/maxwell-spinning.glb` but user-replaceable via `config/General.qml`, same "Path"-kcfg-entry + Browse/Reset pattern as `gifpath`), with `NumberAnimation` on `eulerRotation.y` for continuous spinning
   - Mouse camera control is provided by `QtQuick3D.Helpers`' `OrbitCameraController`, bound to `cameraOrigin`/`camera`: drag to orbit, scroll to zoom (Ctrl+drag to pan). `allowcameradrag` only toggles `OrbitCameraController.mouseEnabled` — it no longer resets the pose
   - The camera pose (`cameraOrigin.position`/`eulerRotation`, `camera.z`) persists across sessions in `plasmoid.configuration` (`campos{x,y,z}`, `camrot{x,y}`, `camzoom`). `view3d.qml`'s `applyCameraFromConfig()` is the single source of truth: it runs once on load, and again via `Connections` on `plasmoid.configuration` whenever those entries change externally. It's applied imperatively rather than as a live QML binding, since `OrbitCameraController` mutates `cameraOrigin.position`/`eulerRotation` imperatively on every drag/pan, which would tear down a declarative binding on first use anyway
   - Writes the other direction (live pose → `plasmoid.configuration`) are debounced through a single `saveCameraTimer` (400ms): `OrbitCameraController`'s `FrameAnimation` reassigns the pose every frame while dragging, so writing straight to `plasmoid.configuration` on every change would spam KConfig for the whole drag; each change just restarts the timer, and only the value after the pose has settled gets persisted
-  - The "Reset default position" button in `General.qml` writes each `cfg_camposx`/etc. (the KCM dialog's staged copy, so Cancel/Apply/OK bookkeeping for other pending edits stays correct) *and* the matching `Plasmoid.configuration.camposx`/etc. directly (`import org.kde.plasma.plasmoid`; `Plasmoid` is an attached property, so it resolves to the same live applet instance `view3d.qml` reads from, not a per-engine copy) — the second write is what makes the reset take effect immediately instead of waiting for Apply/OK, since normally `cfg_*` properties in a config page are only staged and don't touch the live config until Apply/OK
-  - `General.qml` also keeps `cfg_camposx`/etc. mirrored live to `Plasmoid.configuration` the whole time the dialog is open (another `Connections` block, same six keys). This isn't optional: `AppletConfiguration.qml`'s `saveConfig()` unconditionally writes *every* `cfg_*` property back into the live config on Apply/OK, not just ones the user touched in this dialog — so without this sync, dragging the camera live while the dialog happened to be open, then applying some unrelated change (e.g. unchecking "Allow dragging the camera"), would silently revert the camera to wherever it was when the dialog was first opened
+  - The "Reset default position" button in `config/General.qml` writes each `cfg_camposx`/etc. (the KCM dialog's staged copy, so Cancel/Apply/OK bookkeeping for other pending edits stays correct) *and* the matching `Plasmoid.configuration.camposx`/etc. directly (`import org.kde.plasma.plasmoid`; `Plasmoid` is an attached property, so it resolves to the same live applet instance `view3d.qml` reads from, not a per-engine copy) — the second write is what makes the reset take effect immediately instead of waiting for Apply/OK, since normally `cfg_*` properties in a config page are only staged and don't touch the live config until Apply/OK
+  - `config/General.qml` also keeps `cfg_camposx`/etc. mirrored live to `Plasmoid.configuration` the whole time the dialog is open (another `Connections` block, same six keys). This isn't optional: `AppletConfiguration.qml`'s `saveConfig()` unconditionally writes *every* `cfg_*` property declared on the current page back into the live config on Apply/OK, not just ones the user touched — so without this sync, dragging the camera live while the dialog happened to be open, then applying some unrelated change (e.g. unchecking "Allow dragging the camera"), would silently revert the camera to wherever it was when the dialog was first opened
   - `view3d.qml` exposes a `hasError` property (`modelLoader.status === RuntimeLoader.Error`) to signal model loading failures back to the parent widget, and `clicked()`/`doubleClicked()` signals (from an internal `TapHandler`) so `MaxwellWidget.qml` can still toggle the theme song in 3D mode without a `MouseArea` stealing drag input from the orbit controller
   - **Error handling:** The widget distinguishes between two failure modes when 3D mode is selected:
     - **QtQuick3D missing:** The `Loader` fails with `Loader.Error` status. An error message is displayed informing the user to install `qt6-qtquick3d`.
     - **Assimp plugin missing:** The `Loader` loads successfully but `view3d.qml`'s `RuntimeLoader` fails to load the GLB model (`hasError` is true). An error message is displayed informing the user to install the Assimp plugin.
   - When either error occurs, a `Rectangle` overlay is shown with descriptive error text (title + details) instead of displaying the GIF or 3D view.
+- **Movement** (`movement`) applies to both display modes. `MaxwellWidget.qml` computes `gifSpeed`/`glbSpeed`: the constant `gifspeed`/`glbspeed`, or for a sensor type `sensorSpeed`, which normalizes the reading to 0–1 (usage 0–100%, or the fan's learned or manual RPM range) and maps it linearly onto 0.6–10 (the speed sliders' range)
+  - Readings come from `HardwareSensor.qml` (`org.kde.ksysguard.sensors`: `cpu/all/usage`, `gpu/all/usage`, or `fansensor`, read through the `ksystemstats` user daemon - no special rights, no C++). It's loaded via a `Loader` for the same reason as `view3d.qml`: if libksysguard is missing the `Loader` errors and the widget falls back to constant speed. It also falls back while the sensor isn't `Ready` - a nonexistent sensor id (no GPU, unplugged fan) stays `Loading` forever rather than erroring
+  - `HardwareSensor.qml` recreates its `Sensor` whenever the id changes: a reused `Sensor` re-announces the previous id's value first, which would briefly map e.g. a usage percentage onto an RPM range
+  - Fan RPM ranges are learned by default (`fanautorange`) in `FanRangeLearner.qml`: fans rarely report a maximum and a fixed default range can sit entirely below a fan's real speed (e.g. a case fan idling at 1300 and running 2100 under load clamps at full speed with 0–2000). It samples at twice the sample rate, only extends the range to readings held for two samples (so one-off spikes don't widen it for good), never treats the range as narrower than 500 RPM (so jitter doesn't swing between slowest and fastest), and before learning anything stays at slowest. The range is persisted (debounced 10s) in `fanlearnedmin`/`fanlearnedmax` together with `fanlearnedsensor`, so switching fans starts over; `config/Movement.qml` shows it live and its "Reset learned range" button clears `fanlearnedsensor` directly, like "Reset default position". The `writing` guard stops the learner reloading from config halfway through its own three-entry write
+  - `"By cursor proximity"` maps the cursor's distance to the widget's edge (0 inside) onto the same 0.6–10 range: fastest at the edge, slowest at `proximityreach` or once the cursor leaves. The cursor is tracked by a `HoverHandler` on an invisible `Item` extending `proximityreach` past each edge (hover follows the item's own geometry, not its parent's). Plasma has no global cursor position (Wayland wouldn't allow one), so it only sees the cursor on the same surface and not under anything stacked above: the desktop around the widget, or just the panel. `HoverHandler` is non-blocking and a bare `Item` accepts no clicks, so desktop icons, the desktop itself and the 3D camera drag are unaffected. Smoothed with a `SmoothedAnimation` (fixed velocity) instead of the sample-period `Behavior`, since hover updates arrive far more often than samples
+  - `cpusamplerate` is the sensor's `updateRateLimit`. `ksystemstats` itself refreshes every 500ms, hence the minimum
+  - Smoothing: a `Behavior` on `sensorSpeed` eases to each new sample over one sample period
+  - 3D spin is a `FrameAnimation` advancing `eulerRotation.y` by `24 * speed * frameTime` (one turn per 15s at speed 1) rather than a fixed-duration `NumberAnimation`, so speed can change every frame without the model jumping. `view3d.qml` exposes `speed` (defaults to `glbspeed`), bound by `MaxwellWidget.qml`
+  - `config/Movement.qml` loads `config/SensorDiscovery.qml` through a `Loader` (error = libksysguard missing), which walks `SensorTreeModel` for `gpu/gpuN/usage` and `…/fanN` sensors and keeps a live-RPM label per fan. Unavailable types are disabled, and `effectiveMovement` shows `"Constant"` for them without touching `cfg_movement`, so the configured type comes back if the hardware does. Picking a fan prefills `fanmaxrpm` when the sensor reports a maximum (GPU fans do, motherboard fans usually don't)
 - Sound is managed through QtMultimedia's `SoundEffect` component. The click/double-click `MouseArea` in `MaxwellWidget.qml` only handles GIF mode (`enabled`/`visible: !is3DMode`); in 3D mode it would otherwise grab drag events before the `OrbitCameraController` in `view3d.qml`, so clicks are instead delivered via the loaded item's `clicked()`/`doubleClicked()` signals
-- Configuration UI uses property aliases bound to KCM settings, with conditional visibility (`displaymode.currentIndex`)
+- Configuration UI uses property aliases bound to KCM settings, with conditional visibility. Pages other than General read the display mode live from `Plasmoid.configuration.displaymode` rather than declaring `cfg_displaymode`, since declaring it would make them write their copy back on Apply
+- Every page's root is a `KCM.SimpleKCM` wrapping one `config/SettingsForm.qml` (a `Kirigami.FormLayout`), not the `FormLayout` itself. Plasma pushes the page straight into its dialog's `pageStack`, and a bare layout gets no padding (the first control ends up against the dialog header) and no flickable, so a tall page - Movement in "By fan speed" - simply gets cut off. `SimpleKCM` is a `ScrollablePage`, so it scrolls; its own padding is only 6px, hence the explicit `topPadding`/`bottomPadding`, and `globalToolBarStyle: None` keeps it from adding a title bar for a category the sidebar already names
+- Pages whose rows appear and disappear (Movement per movement type, General per display mode) list all their labels in a `config/LabelColumnAnchor.qml` named in the `FormLayout`'s `twinFormLayouts`. Kirigami sizes a form's label column to the widest *visible* label, so without it every control slides sideways (~17px between "Speed" and "Sample rate") whenever the widest visible label changes
+- `config/SettingsForm.qml` keeps each page transparent until its layout settles. `Kirigami.FormLayout` starts with `wideImplicitWidth` at 0 and fills it in from a zero-interval `Timer`, and twins (`LabelColumnAnchor`) register via `Qt.callLater`, so the grid - which is centred in the form - is zero-width for the first frame and the controls snap outwards from the middle of the page. Since the dialog recreates the page on every section switch, that showed as a flicker each time. It reveals itself one event loop turn after the last `implicitWidth` change, via `opacity` rather than `visible` (an invisible child doesn't count towards `ScrollablePage`'s content height), and it must not declare `Component.onCompleted` - that attached handler would replace `FormLayout`'s own, which is where it lays its rows out
+- **Config pages and migration:** Plasma's `AppletConfiguration.qml` hands each page every key as `cfg_<name>`, and on Apply saves only the `cfg_*` properties the current page declares. Pages are therefore free to regroup settings, but:
+  - All entries stay in the single `<group name="General">` in `main.xml`. Values are stored per group in `plasma-org.kde.plasma.desktop-appletsrc` (`[...][Configuration][General]`), so moving or renaming an entry resets it for existing users
+  - Each key is declared on exactly one page
 - File selection uses lazy-loaded `FileDialog` via `Loader` components
 - New config options should be added to all four places:
   1. `contents/config/main.xml` (schema with default value)
-  2. `contents/ui/config/General.qml` (UI control with property alias)
+  2. The matching page in `contents/ui/config/` (UI control with property alias) - declare each key on one page only
   3. `contents/ui/main.qml` (consume via `plasmoid.configuration.<name>`)
   4. `tools/dbus_control.sh`'s `PROPERTIES` array (so `--list-properties`/`--help` stay accurate)
 

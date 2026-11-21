@@ -48,8 +48,8 @@ It works by calling `org.kde.plasmashell`'s `evaluateScript` DBus method
 (via `qdbus`/`qdbus-qt6`/`qdbus6`, whichever is found first) to run a
 small Plasma Shell script that enumerates widgets of type `maxwell` across
 all desktops and panels, picks the target instance, and calls
-`writeConfig()`/`reloadConfig()` on it — the same mechanism `General.qml`
-itself uses to persist settings, just invoked from outside the widget.
+`writeConfig()`/`reloadConfig()` on it — the same mechanism the config
+dialog itself uses to persist settings, just invoked from outside the widget.
 
 Requires a running `plasmashell` (i.e. an actual Plasma session) and at
 least one Maxwell widget already added to the desktop or a panel.

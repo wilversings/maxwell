@@ -12,6 +12,8 @@
 - **Mouse-controlled camera** — In 3D Mesh mode, drag to orbit the camera around Maxwell and scroll to zoom.
 - **Customizable animation** — Swap in your own GIF or 3D mesh (GLB) and adjust playback/rotation speed.
 - **Theme song** — Play the iconic Maxwell theme song (or any audio file) on click, double click, or on demand via [DBus](./tools/README.md#dbus_controlsh).
+- **Spins with your hardware** — Optionally let CPU usage, GPU usage or a fan's RPM set the pace: Maxwell naps when idle and goes feral while compiling (or gaming).
+- **Notices you** — Or let the cursor set the pace: the closer you get, the more excited he spins.
 - **Fully configurable** — Adjust speed, enable mirroring, control rendering quality, and more.
 
 ## 🚀 Installation
@@ -22,7 +24,7 @@ Right-click on your Plasma desktop → **Add Widgets** → search for **Maxwell*
 
 ## ⚙️ Configuration
 
-Right-click the Maxwell widget and select **Configure...** to access all settings, including display mode, paths, speed, and sound options.
+Right-click the Maxwell widget and select **Configure...** to access all settings, grouped into **General**, **Movement** and **Sound**.
 
 ## ⚠️ Requirements
 
@@ -32,6 +34,7 @@ Right-click the Maxwell widget and select **Configure...** to access all setting
   - **Fedora:** `qt6-qtquick3d` and `assimp`
   - **openSUSE:** `libqt6qtquick3d` and `libqt6qtquick3d-assets`
   - **Debian / Ubuntu:** `libqt6qtquick3d6` and `libqt6qtquick3d6-assets`
+- **libksysguard**: Needed for the CPU, GPU and fan speed movement types. Ships with Plasma, so you most likely have it already.
 
 ## 🛠️ Building & Testing
 
