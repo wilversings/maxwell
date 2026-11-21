@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.3.0
 
 ### Added
 
@@ -15,6 +15,11 @@
 - Settings pages keep a margin below the dialog header, scroll when they don't fit, and no longer shift sideways when switching movement type or display mode
 - Settings pages no longer flicker into place when a section is first shown
 - 3D Mesh rotation speed changes no longer make the model jump
+
+### Fixed
+
+- De-URLized custom paths (file:///home/x/a.gif to /home/x/a.gif)
+- Fixed file picker filter
 
 ## 2.2.0
 
